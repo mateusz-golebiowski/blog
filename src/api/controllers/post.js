@@ -25,7 +25,45 @@ export const newPost = (req, res, next) => {
 };
 
 export const updatePost = (req, res, next) => {
+    const postId = parseInt(req.params.id);
+    console.log(req.body);
+    checkToken(req.body.auth, (user) => {
+        if (user.success) {
+            console.log(user);
+            User.findOne({
+                where: {
+                    id: user.decoded.id
+                },
+                include: [{
+                    model: Post,
+                    attributes: ['id'],
+                    where: {
+                        id: postId
+                    }
+                }]
+            })
+                .then(user => {
+                   if (user !== null) {
+                       const updateData = {
+                           title: req.body.title,
+                           content: req.body.content
+                       };
+                       user.Posts[0].update(updateData)
+                           .then(result =>{
 
+                               res.send(result.toJSON());
+                           });
+                   }else {
+                       res.send("error");
+                   }
+                });
+
+
+
+        } else {
+            res.send({error: "Wrong token"});
+        }
+    });
 };
 
 export const getPosts = (req, res, next) => {
