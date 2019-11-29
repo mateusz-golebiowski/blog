@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import userRouter from './routes/user';
 import postRouter from './routes/post';
 import commentRouter from './routes/comment';
@@ -20,6 +21,7 @@ db.sequelize.sync()
 
 const api = express();
 
+api.use(cors());
 api.use(express.json());
 api.use(express.urlencoded({ extended: true }));
 
