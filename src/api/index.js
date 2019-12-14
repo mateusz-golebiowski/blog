@@ -3,6 +3,7 @@ import cors from 'cors';
 import userRouter from './routes/user';
 import postRouter from './routes/post';
 import commentRouter from './routes/comment';
+import imageRouter from './routes/image';
 import db from '../models/index';
 import { User } from '../models';
 
@@ -34,6 +35,7 @@ api.get('/', (req, res) => {
 api.use('/user', userRouter);
 api.use('/post', postRouter);
 api.use('/comment', commentRouter);
+api.use('/image', imageRouter);
 api.all('*', (req, res)=>{
     res.status(404).send('');
 });
