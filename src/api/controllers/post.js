@@ -3,12 +3,14 @@ import { Post, User } from '../../models';
 import Sequelize from "sequelize";
 
 export const newPost = (req, res, next) => {
+    console.log(req.file);
     console.log(req.body);
     checkToken(req.body.auth, (user) => {
         if (user.success) {
             const data = {
                 title: req.body.title,
-                content: req.body.content
+                content: req.body.content,
+                img: `http://127.0.0.1:4000/api/v1/image/${req.file.filename}`,
             };
             console.log(user);
             Post.create(data)
