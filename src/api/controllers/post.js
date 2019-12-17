@@ -81,7 +81,7 @@ export const getPosts = (req, res, next) => {
         order: [['updatedAt', 'DESC']],
         include: [{
             model: User,
-            attributes: ['id','firstname','lastname','email']
+            attributes: ['id','username','firstname','lastname','email']
         }]
     })
         .then(posts => {
@@ -98,7 +98,7 @@ export const getPost = (req, res, next) => {
         where: {
             id: req.params.id
         },
-        include: [{model: User,attributes: ['id','firstname','lastname','email']}]
+        include: [{model: User,attributes: ['id','username','firstname','lastname','email']}]
     })
         .then(post => {
 
