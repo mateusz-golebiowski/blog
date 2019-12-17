@@ -14,10 +14,13 @@ export const newPost = (req, res, next) => {
             Post.create(data)
                 .then(result=> {
                     result.setUser(user.decoded.id);
-                    res.send(result);
+                    const response = {};
+                    response.data = result.toJSON();
+                    response.success = true;
+                    res.send(response);
                 });
         } else {
-            res.send({error: "Wrong token"});
+            res.send({success: false, error: "Wrong token"});
         }
     });
 
