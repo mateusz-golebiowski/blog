@@ -7,16 +7,8 @@ const alloweFileTypes = [
     'image/jpeg',
 ];
 
-const validateFile = (file)  => {
-    return alloweFileTypes.includes(file.mimetype);
-};
-
 export const upload = (req, res) => {
-    console.log(req.file);
     if (req.file !== undefined) {
-        if (validateFile(req.file)) {
-
-        }
 
         res.send({
             'success' : 1,

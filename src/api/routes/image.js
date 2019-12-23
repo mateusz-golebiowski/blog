@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import {upload, show} from '../controllers/image';
+import {auth} from '../controllers/auth';
 import multer from 'multer';
 
 const storage = multer.diskStorage({
@@ -14,6 +15,6 @@ const storage = multer.diskStorage({
 const up = multer({ storage: storage });
 
 const imageRouter = Router();
-imageRouter.post('/upload', up.single('image'), upload);
+imageRouter.post('/upload', auth, up.single('image'), upload);
 imageRouter.get('/:name', show);
 export default imageRouter;
