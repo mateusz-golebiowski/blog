@@ -79,9 +79,14 @@ export const getPost = (req, res, next) => {
         include: [{model: User,attributes: ['id','username','firstname','lastname','email']}]
     })
         .then(post => {
-
-            const data = post ? post.dataValues : { error: "there is no post"};
-            res.send(data);
+            let response;
+            if (post) {
+                response = post.dataValues;
+                response.success = 1;
+            } else {
+                response = { success: 0, error: 'there is no post'}
+            }
+            res.send(response);
         });
 };
 export const deletePost = (req, res, next) => {
