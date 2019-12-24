@@ -53,21 +53,28 @@ export const getPosts = (req, res, next) => {
     const offset = (req.params.page-1) * 10;
     const limit = offset + 10;
 
-    Post.findAll({
-        offset,
-        limit,
-        order: [['updatedAt', 'DESC']],
-        include: [{
-            model: User,
-            attributes: ['id','username','firstname','lastname','email']
-        }]
-    })
-        .then(posts => {
-
-            const data =  posts.map( post => post.toJSON());
-            //const data = posts ? posts.dataValues : { error: "there is no posts"};
-            res.send(data);
+    Post.count().then(count=>{
+        Post.findAll({
+            offset,
+            limit,
+            order: [['updatedAt', 'DESC']],
+            include: [{
+                model: User,
+                attributes: ['id','username','firstname','lastname','email']
+            }]
+        })
+            .then(posts => {
+                const data =  posts.map( post => post.toJSON());
+                //const data = posts ? posts.dataValues : { error: "there is no posts"};
+                const response = {};
+                response.count = count;
+                response.pages = Math.ceil(count/(limit-offset));
+                response.posts = data;
+                res.send(response);
+            });
     });
+
+
 };
 
 export const getPost = (req, res, next) => {
