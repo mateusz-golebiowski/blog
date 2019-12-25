@@ -52,9 +52,23 @@ export const updatePost = (req, res, next) => {
 export const getPosts = (req, res, next) => {
     const offset = (req.params.page-1) * 10;
     const limit = offset + 10;
+    const Op = Sequelize.Op;
 
-    Post.count().then(count=>{
+    const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
+
+    Post.count({
+        where: {
+            title:  {
+                [Op.like]: titleQuery
+            }
+        }
+    }).then(count=>{
         Post.findAll({
+            where: {
+                title:  {
+                    [Op.like]: titleQuery
+                }
+            },
             offset,
             limit,
             order: [['updatedAt', 'DESC']],
