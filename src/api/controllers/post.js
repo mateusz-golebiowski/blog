@@ -6,7 +6,7 @@ export const newPost = (req, res, next) => {
     const data = {
         title: req.body.title,
         content: req.body.content,
-        img: `http://127.0.0.1:4000/api/v1/image/${req.file.filename}`,
+        img: req.file.filename,
     };
     console.log(req.user);
     Post.create(data)

@@ -13,7 +13,7 @@ export const upload = (req, res) => {
         res.send({
             'success' : 1,
             'file': {
-                'url' : `http://127.0.0.1:4000/api/v1/image/${req.file.filename}`,
+                'url' : `http://192.168.100.7:4000/api/v1/image/${req.file.filename}`,
                 // ... and any additional fields you want to store, such as width, height, color, extension, etc
             }
         });
