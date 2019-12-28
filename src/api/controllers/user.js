@@ -74,3 +74,16 @@ export const signUp = (req, res) => {
     }
 
 };
+
+export const updateUserData = (req, res) => {
+
+
+};
+
+export const getUserData = (req, res) => {
+    User.findByPk(req.params.id, {
+        attributes: ['username', 'firstname', 'lastname', 'email'],
+    }).then(result => {
+        res.send({success: 1, data: result.toJSON()});
+    });
+};
