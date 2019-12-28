@@ -76,8 +76,9 @@ export const signUp = (req, res) => {
 };
 
 export const updateUserData = (req, res) => {
+    console.log(req.body);
 
-
+    res.send({ok:1});
 };
 
 export const getUserData = (req, res) => {
