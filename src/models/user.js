@@ -3,7 +3,7 @@ import bcrypt from 'bcrypt'
 
 module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
-    username: DataTypes.STRING,
+    username: {type: DataTypes.STRING, unique: true },
     firstname: DataTypes.STRING,
     lastname: DataTypes.STRING,
     email: DataTypes.STRING,
@@ -18,7 +18,21 @@ module.exports = (sequelize, DataTypes) => {
             .catch(err => {
               throw new Error();
             });
-      }
+      },
+      beforeUpdate(attributes, options) {
+        if (attributes.changed('password')) {
+          return bcrypt.hash(attributes.password, 10)
+              .then(hash => {
+                attributes.password = hash;
+              })
+              .catch(err => {
+                throw new Error();
+              });
+        }else{
+          return null;
+        }
+
+      },
     }
 
   });

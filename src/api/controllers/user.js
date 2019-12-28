@@ -76,9 +76,50 @@ export const signUp = (req, res) => {
 };
 
 export const updateUserData = (req, res) => {
-    console.log(req.body);
+    console.log(req.body.duup);
+    console.log(req.params.id);
+    console.log(req.user);
+    const data = {};
+    if (req.body.username !== undefined)
+        data.username = req.body.username;
+    if (req.body.email !== undefined)
+        data.email = req.body.email;
+    if (req.body.lastname !== undefined)
+        data.lastname = req.body.lastname;
+    if (req.body.firstname !== undefined)
+        data.firstname = req.body.firstname;
 
-    res.send({ok:1});
+    if(req.body.oldPassword && req.body.newPassword) {
+        data.password = req.body.newPassword;
+    }
+    User.findByPk(req.params.id)
+        .then(async result => {
+            if (!result) {
+                return res.status(401).send({ success: 0, message: 'user not found' });
+            } else  {
+                if(req.body.oldPassword && req.body.newPassword) {
+                    if (!await result.validPassword(req.body.oldPassword)) {
+                        return res.status(401).send({ success: 0, message: 'wrong password' });
+                    }
+                }
+                result.update(data)
+                    .then(updated=>{
+                        const upd = updated.toJSON();
+                        const data = {
+                            username: upd.username,
+                            email: upd.email,
+                            firstname: upd.firstname,
+                            lastname: upd.lastname,
+                        };
+                        return res.status(200).send({success: 1, data: data });
+                    })
+                    .catch( error => {
+                        return res.status(401).send({ success: 0, message: error.message });
+                    });
+
+            }
+        });
+
 };
 
 export const getUserData = (req, res) => {
