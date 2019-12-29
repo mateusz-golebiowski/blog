@@ -1,6 +1,7 @@
 import {checkToken, createToken} from  '../../lib/token';
 import { User } from '../../models';
 import Sequelize from "sequelize";
+import errors from '../../lib/errors';
 
 
 const validateData = (data)  => {
@@ -112,7 +113,16 @@ export const updateUserData = (req, res) => {
                         return res.status(200).send({success: 1, data: data });
                     })
                     .catch( error => {
-                        return res.status(401).send({ success: 0, message: error.message });
+                        const errors = error.errors;
+                        const incorrectFields = [];
+                        errors.forEach( item => {
+                            incorrectFields.push({
+                                fieldName: item.path,
+                                type: item.type,
+                            });
+                        });
+
+                        return res.status(401).send({ success: 0, message: error.message, fields: incorrectFields});
                     });
 
             }
