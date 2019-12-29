@@ -6,5 +6,5 @@ const userRouter = Router();
 userRouter.post('/signIn', signIn);
 userRouter.post('/signUp', auth, signUp);
 userRouter.get('/getData/:id', auth, getUserData);
-userRouter.put('/update/:id', auth, updateUserData);
+userRouter.put('/updateMyProfile/', auth, updateUserData);
 export default userRouter;

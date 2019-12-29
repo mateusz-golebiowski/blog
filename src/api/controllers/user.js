@@ -76,9 +76,7 @@ export const signUp = (req, res) => {
 };
 
 export const updateUserData = (req, res) => {
-    console.log(req.body.duup);
-    console.log(req.params.id);
-    console.log(req.user);
+    console.log(req.user.decoded.id);
     const data = {};
     if (req.body.username !== undefined)
         data.username = req.body.username;
@@ -92,7 +90,7 @@ export const updateUserData = (req, res) => {
     if(req.body.oldPassword && req.body.newPassword) {
         data.password = req.body.newPassword;
     }
-    User.findByPk(req.params.id)
+    User.findByPk(req.user.decoded.id)
         .then(async result => {
             if (!result) {
                 return res.status(401).send({ success: 0, message: 'user not found' });

@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     username: {type: DataTypes.STRING, unique: true },
     firstname: DataTypes.STRING,
     lastname: DataTypes.STRING,
-    email: DataTypes.STRING,
+    email: {type: DataTypes.STRING, unique: true },
     password: DataTypes.STRING
   }, {
     hooks: {
