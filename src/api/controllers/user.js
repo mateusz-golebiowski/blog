@@ -98,7 +98,7 @@ export const updateUserData = (req, res) => {
             } else  {
                 if(req.body.oldPassword && req.body.newPassword) {
                     if (!await result.validPassword(req.body.oldPassword)) {
-                        return res.status(401).send({ success: 0, message: 'wrong password' });
+                        return res.status(401).send({ success: 0, message: 'wrong password', fields:[{fieldname: 'oldPassword', type: 'wrong password'}] });
                     }
                 }
                 result.update(data)
