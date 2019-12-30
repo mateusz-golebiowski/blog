@@ -1,8 +1,7 @@
-import {checkToken} from  '../../lib/token';
 import { Post, User } from '../../models';
-import Sequelize from "sequelize";
+import Sequelize from 'sequelize';
 
-export const newPost = (req, res, next) => {
+export const newPost = (req, res) => {
     const data = {
         title: req.body.title,
         content: req.body.content,
@@ -19,8 +18,9 @@ export const newPost = (req, res, next) => {
         });
 };
 
-export const updatePost = (req, res, next) => {
+export const updatePost = (req, res) => {
     const postId = parseInt(req.params.id);
+    console.log('d');
     User.findOne({
         where: {
             id: req.user.decoded.id
@@ -41,15 +41,19 @@ export const updatePost = (req, res, next) => {
                 };
                 user.Posts[0].update(updateData)
                     .then(result =>{
-                        res.send(result.toJSON());
+
+                        const response = {};
+                        response.data = result.toJSON();
+                        response.success = true;
+                        res.send(response);
                     });
             }else {
-                res.send("error");
+                res.send('error');
             }
         });
 };
 
-export const getPosts = (req, res, next) => {
+export const getPosts = (req, res) => {
     const offset = (req.params.page-1) * 10;
     const limit = offset + 10;
     const Op = Sequelize.Op;
@@ -91,7 +95,7 @@ export const getPosts = (req, res, next) => {
 
 };
 
-export const getPost = (req, res, next) => {
+export const getPost = (req, res) => {
 
     Post.findOne({
         where: {
@@ -110,6 +114,6 @@ export const getPost = (req, res, next) => {
             res.send(response);
         });
 };
-export const deletePost = (req, res, next) => {
+export const deletePost = (req, res) => {
 
 };

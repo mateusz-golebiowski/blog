@@ -16,7 +16,7 @@ const up = multer({ storage: storage });
 
 const postRouter = Router();
 postRouter.post('/',auth, up.single('image'), newPost);
-postRouter.put('/:id', auth, updatePost);
+postRouter.put('/:id', auth, up.single('image'), updatePost);
 postRouter.get('/:page', getPosts);
 postRouter.get('/show/:id', getPost);
 postRouter.delete('/:id', auth, deletePost);
