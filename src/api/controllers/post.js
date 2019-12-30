@@ -20,7 +20,6 @@ export const newPost = (req, res) => {
 
 export const updatePost = (req, res) => {
     const postId = parseInt(req.params.id);
-    console.log('d');
     User.findOne({
         where: {
             id: req.user.decoded.id
@@ -37,7 +36,8 @@ export const updatePost = (req, res) => {
             if (user !== null) {
                 const updateData = {
                     title: req.body.title,
-                    content: req.body.content
+                    content: req.body.content,
+                    img: req.file.filename,
                 };
                 user.Posts[0].update(updateData)
                     .then(result =>{
@@ -92,7 +92,6 @@ export const getPosts = (req, res) => {
             });
     });
 
-
 };
 
 export const getPost = (req, res) => {
@@ -114,6 +113,19 @@ export const getPost = (req, res) => {
             res.send(response);
         });
 };
+
 export const deletePost = (req, res) => {
+    Post.destroy({
+        where: {
+            id: req.params.id
+        }
+    })
+        .then(result => {
+            if (result){
+                res.send({success:1});
+            }else {
+                res.send({success:0});
+            }
+        });
 
 };
