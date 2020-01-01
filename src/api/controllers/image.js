@@ -1,6 +1,5 @@
-import {checkToken, createToken} from  '../../lib/token';
-import { User } from '../../models';
-import Sequelize from "sequelize";
+import {dataStorageConfig} from '../../config/dataStorageConfig';
+import path from 'path';
 
 const alloweFileTypes = [
     'image/png',
@@ -14,7 +13,6 @@ export const upload = (req, res) => {
             'success' : 1,
             'file': {
                 'url' : `http://192.168.100.7:4000/api/v1/image/${req.file.filename}`,
-                // ... and any additional fields you want to store, such as width, height, color, extension, etc
             }
         });
     }
@@ -22,5 +20,14 @@ export const upload = (req, res) => {
 };
 
 export const show = (req, res) => {
-    res.sendFile(`/home/mateusz/WebstormProjects/blog/uploads/${req.params.name}`);
+    let storage;
+    if (process.env.NODE_ENV === 'production') {
+        storage = process.env.IMAGE_STORAGE;
+
+    } else {
+        const resolve = path.resolve;
+        storage = resolve(dataStorageConfig.devUploads);
+    }
+
+    res.sendFile(`${storage}/${req.params.name}`);
 };

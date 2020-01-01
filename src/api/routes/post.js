@@ -2,10 +2,17 @@ import { Router } from 'express';
 import { newPost, getPost, getPosts, updatePost, deletePost } from '../controllers/post';
 import multer from 'multer';
 import {auth} from '../controllers/auth';
+import {dataStorageConfig} from '../../config/dataStorageConfig';
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        cb(null, 'uploads')
+        let storage;
+        if (process.env.NODE_ENV === 'production') {
+            storage = process.env.IMAGE_STORAGE;
+        } else {
+            storage = dataStorageConfig.devUploads;
+        }
+        cb(null, storage)
     },
     filename: function (req, file, cb) {
         cb(null, Date.now() + '-'+ file.originalname)
