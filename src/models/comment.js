@@ -6,7 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING
   }, {});
   Comment.associate = function(models) {
-    // associations can be defined here
+    Comment.belongsTo(models.Post);
   };
   return Comment;
 };
