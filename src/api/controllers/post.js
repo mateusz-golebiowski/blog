@@ -1,5 +1,5 @@
 import { Post, User } from '../../models';
-import Sequelize, {json} from 'sequelize';
+import Sequelize from 'sequelize';
 import {removeFile} from '../../lib/file';
 
 const prepareFileList = (content) => {
@@ -11,6 +11,16 @@ const prepareFileList = (content) => {
         return filtered;
     }, []);
 };
+const validateData = (data) => {
+    let correct = true;
+    if(data.title.length === 0 || data.content.length === 0 || data.img.length === 0)
+        correct = false;
+    const content = JSON.parse(data.content);
+    console.log(content);
+    if (!Array.isArray(content.blocks))
+        correct = false;
+    return correct;
+};
 
 export const newPost = (req, res) => {
     const data = {
@@ -18,15 +28,20 @@ export const newPost = (req, res) => {
         content: req.body.content,
         img: req.file.filename,
     };
-    console.log(req.user);
-    Post.create(data)
-        .then(result=> {
-            result.setUser(req.user.decoded.id);
-            const response = {};
-            response.data = result.toJSON();
-            response.success = true;
-            res.send(response);
-        });
+
+    if (validateData(data)){
+        Post.create(data)
+            .then(result=> {
+                result.setUser(req.user.decoded.id);
+                const response = {};
+                response.data = result.toJSON();
+                response.success = true;
+                res.send(response);
+            });
+    }else {
+       const response = { success: 0, error: 'wrong data'};
+       res.send(response);
+    }
 };
 
 export const updatePost = (req, res) => {
@@ -50,26 +65,31 @@ export const updatePost = (req, res) => {
                     content: req.body.content,
                     img: req.file.filename,
                 };
+                if (validateData(updateData)){
+                    const oldContent = JSON.parse(user.Posts[0].toJSON().content);
+                    const oldImages = prepareFileList(oldContent);
+                    const newContent = JSON.parse(updateData.content);
+                    const newImages = prepareFileList(newContent);
+                    const imagesToRemove = oldImages.filter( ( el ) => !newImages.includes( el ) );
 
-                const oldContent = JSON.parse(user.Posts[0].toJSON().content);
-                const oldImages = prepareFileList(oldContent);
-                const newContent = JSON.parse(updateData.content);
-                const newImages = prepareFileList(newContent);
-                const imagesToRemove = oldImages.filter( ( el ) => !newImages.includes( el ) );
-
-                imagesToRemove.push(user.Posts[0].toJSON().img);
-                imagesToRemove.forEach( item=>{
-                    removeFile(item);
-                });
-
-                user.Posts[0].update(updateData)
-                    .then(result =>{
-
-                        const response = {};
-                        response.data = result.toJSON();
-                        response.success = true;
-                        res.send(response);
+                    imagesToRemove.push(user.Posts[0].toJSON().img);
+                    imagesToRemove.forEach( item=>{
+                        removeFile(item);
                     });
+
+                    user.Posts[0].update(updateData)
+                        .then(result =>{
+
+                            const response = {};
+                            response.data = result.toJSON();
+                            response.success = true;
+                            res.send(response);
+                        });
+                } else {
+                    const response = { success: 0, error: 'wrong data'};
+                    res.send(response);
+                }
+
             }else {
                 res.send('error');
             }

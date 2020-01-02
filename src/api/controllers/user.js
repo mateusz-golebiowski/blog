@@ -36,7 +36,7 @@ export const signIn = (req, res) => {
 };
 
 export const signUp = (req, res) => {
-    const data = {
+    /*const data = {
         username: req.body.username,
         password: req.body.password,
         email: req.body.email,
@@ -72,7 +72,8 @@ export const signUp = (req, res) => {
             });
     } else {
         return res.status(409).send({ message: 'incorrect data' });
-    }
+    }*/
+    return res.status(409).send({ message: 'incorrect data' });
 
 };
 
