@@ -19,7 +19,17 @@ const storage = multer.diskStorage({
     }
 });
 
-const up = multer({ storage: storage });
+const fileFilter = (req, file, cb) => {
+    const type = file.mimetype;
+    const typeArray = type.split('/');
+    if (typeArray[0] == 'image') {
+        cb(null, true);
+    }else {
+        cb(null, false);
+    }
+};
+
+const up = multer({ storage: storage, fileFilter: fileFilter });
 
 const postRouter = Router();
 postRouter.post('/',auth, up.single('image'), newPost);
