@@ -3,6 +3,8 @@ import { newPost, getPost, getPosts, updatePost, deletePost } from '../controlle
 import multer from 'multer';
 import {auth} from '../controllers/auth';
 import {dataStorageConfig} from '../../config/dataStorageConfig';
+import path from 'path';
+import crypto from 'crypto';
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -15,7 +17,11 @@ const storage = multer.diskStorage({
         cb(null, storage)
     },
     filename: function (req, file, cb) {
-        cb(null, Date.now() + '-'+ file.originalname)
+        const md5sum = crypto.createHash('md5');
+
+        md5sum.update(file.originalname);
+        const d = md5sum.digest('hex');
+        cb(null, `${Date.now()}${d}.${path.extname(file.originalname)}`)
     }
 });
 

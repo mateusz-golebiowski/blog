@@ -1,11 +1,6 @@
 import {dataStorageConfig} from '../../config/dataStorageConfig';
 import path from 'path';
 
-const alloweFileTypes = [
-    'image/png',
-    'image/jpeg',
-];
-
 export const upload = (req, res) => {
     if (req.file !== undefined) {
 

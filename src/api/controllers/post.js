@@ -1,5 +1,16 @@
 import { Post, User } from '../../models';
-import Sequelize from 'sequelize';
+import Sequelize, {json} from 'sequelize';
+import {removeFile} from '../../lib/file';
+
+const prepareFileList = (content) => {
+    return content.blocks.reduce((filtered, item)=>{
+        if (item.type === 'image') {
+            const filename = item.data.file.url.substring(item.data.file.url.lastIndexOf('/')+1);
+            filtered.push(filename);
+        }
+        return filtered;
+    }, []);
+};
 
 export const newPost = (req, res) => {
     const data = {
@@ -26,7 +37,7 @@ export const updatePost = (req, res) => {
         },
         include: [{
             model: Post,
-            attributes: ['id'],
+            attributes: ['id', 'img', 'content'],
             where: {
                 id: postId
             }
@@ -39,6 +50,18 @@ export const updatePost = (req, res) => {
                     content: req.body.content,
                     img: req.file.filename,
                 };
+
+                const oldContent = JSON.parse(user.Posts[0].toJSON().content);
+                const oldImages = prepareFileList(oldContent);
+                const newContent = JSON.parse(updateData.content);
+                const newImages = prepareFileList(newContent);
+                const imagesToRemove = oldImages.filter( ( el ) => !newImages.includes( el ) );
+
+                imagesToRemove.push(user.Posts[0].toJSON().img);
+                imagesToRemove.forEach( item=>{
+                    removeFile(item);
+                });
+
                 user.Posts[0].update(updateData)
                     .then(result =>{
 
@@ -115,17 +138,28 @@ export const getPost = (req, res) => {
 };
 
 export const deletePost = (req, res) => {
-    Post.destroy({
-        where: {
-            id: req.params.id
-        }
-    })
-        .then(result => {
-            if (result){
-                res.send({success:1});
-            }else {
-                res.send({success:0});
-            }
+
+    Post.findByPk(req.params.id).then(result => {
+        const content = JSON.parse(result.toJSON().content);
+        const imagesToRemove = prepareFileList(content);
+        imagesToRemove.push(result.img);
+        imagesToRemove.forEach( item=>{
+           removeFile(item);
         });
 
+    })
+        .then(()=>{
+            Post.destroy({
+                where: {
+                    id: req.params.id
+                }
+            })
+                .then(result => {
+                    if (result){
+                        res.send({success:1});
+                    }else {
+                        res.send({success:0});
+                    }
+                });
+        });
 };
