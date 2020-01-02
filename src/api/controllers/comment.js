@@ -52,11 +52,7 @@ export const getComments = (req, res) => {
     const offset = (req.params.page-1) * 10;
     const limit = offset + 10;
     const postId = req.params.postId;
-
-    Comment.findAll({
-        offset,
-        limit,
-        order: [['updatedAt', 'DESC']],
+    Comment.count({
         include: [{
             model: Post,
             attributes: [],
@@ -65,7 +61,26 @@ export const getComments = (req, res) => {
             }
         }]
     })
-        .then(result=>{
-            res.send(result);
+        .then(count => {
+            Comment.findAll({
+                offset,
+                limit,
+                order: [['updatedAt', 'DESC']],
+                include: [{
+                    model: Post,
+                    attributes: [],
+                    where: {
+                        id: postId
+                    }
+                }]
+            })
+                .then(result=>{
+                    const response = {};
+                    response.count = count;
+                    response.pages = Math.ceil(count/(limit-offset));
+                    response.comments = result;
+                    res.send(response);
+                })
         })
+
 };
