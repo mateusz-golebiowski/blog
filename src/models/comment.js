@@ -6,7 +6,10 @@ module.exports = (sequelize, DataTypes) => {
     email: DataTypes.STRING
   }, {});
   Comment.associate = function(models) {
-    Comment.belongsTo(models.Post);
+    Comment.belongsTo(models.Post, {
+      onDelete: 'cascade',
+      hooks: true
+    });
   };
   return Comment;
 };
