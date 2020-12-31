@@ -1,6 +1,7 @@
-import { Post, User } from '../../models';
+import db, { Post, User, Comment } from '../../models';
 import Sequelize from 'sequelize';
 import {removeFile} from '../../lib/file';
+import SqlQueries from "../../lib/sqlQueries";
 
 const prepareFileList = (content) => {
     return content.blocks.reduce((filtered, item)=>{
@@ -102,35 +103,24 @@ export const getPosts = (req, res) => {
     const Op = Sequelize.Op;
 
     const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
-
-    Post.count({
-        where: {
-            title:  {
-                [Op.like]: titleQuery
-            }
-        }
+    const opts = {
+        raw: true,
+    }
+    db.sequelize.query(SqlQueries.countPosts(titleQuery), opts).then(count => {
+        return count[0][0].count
     }).then(count=>{
-        Post.findAll({
-            where: {
-                title:  {
-                    [Op.like]: titleQuery
-                }
-            },
-            offset,
-            limit,
-            order: [['updatedAt', 'DESC']],
-            include: [{
-                model: User,
-                attributes: ['id','username','firstname','lastname','email']
-            }]
-        })
+        const opts = {
+            model: Post,
+            mapToModel: true,
+            nest: true,
+            raw: true,
+        }
+        db.sequelize.query(SqlQueries.getPosts(titleQuery, offset, limit), opts)
             .then(posts => {
-                const data =  posts.map( post => post.toJSON());
-                //const data = posts ? posts.dataValues : { error: "there is no posts"};
                 const response = {};
                 response.count = count;
                 response.pages = Math.ceil(count/(limit-offset));
-                response.posts = data;
+                response.posts = posts;
                 res.send(response);
             });
     });
@@ -138,23 +128,28 @@ export const getPosts = (req, res) => {
 };
 
 export const getPost = (req, res) => {
-
-    Post.findOne({
-        where: {
-            id: req.params.id
-        },
-        include: [{model: User,attributes: ['id','username','firstname','lastname','email']}]
+    const opts = {
+        model: Post,
+        mapToModel: true,
+        nest: true,
+        raw: true,
+        include: [
+            {
+                model: User,
+                attributes: ['id','username','firstname','lastname','email']
+            },
+        ]
+    }
+    db.sequelize.query(SqlQueries.findUPostById(req.params.id), opts).then(post => {
+        let response;
+        if (post.length === 1) {
+            response = post[0];
+            response.success = 1;
+        } else {
+            response = { success: 0, error: 'there is no post'}
+        }
+        res.send(response);
     })
-        .then(post => {
-            let response;
-            if (post) {
-                response = post.dataValues;
-                response.success = 1;
-            } else {
-                response = { success: 0, error: 'there is no post'}
-            }
-            res.send(response);
-        });
 };
 
 export const deletePost = (req, res) => {
