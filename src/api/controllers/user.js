@@ -4,6 +4,7 @@ import Sequelize from "sequelize";
 import errors from '../../lib/errors';
 import db from '../../models/index';
 import SqlQueries from "../../lib/sqlQueries";
+import bcrypt from "bcrypt";
 
 const validateData = (data)  => {
     // TODO: add data validation
@@ -76,7 +77,7 @@ export const signUp = (req, res) => {
 
 };
 
-export const updateUserData = (req, res) => {
+export const updateUserData = async (req, res) => {
     console.log(req.user.decoded.id);
     const data = {};
     if (req.body.username !== undefined)
@@ -89,7 +90,8 @@ export const updateUserData = (req, res) => {
         data.firstname = req.body.firstname;
 
     if(req.body.oldPassword && req.body.newPassword) {
-        data.password = req.body.newPassword;
+        const hash = await bcrypt.hash(req.body.newPassword, 10);
+        data.password = hash;
     }
     db.sequelize.query(SqlQueries.findUserById(req.user.decoded.id), {
         model: User,
