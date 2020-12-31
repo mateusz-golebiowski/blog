@@ -2,7 +2,8 @@ import {checkToken, createToken} from  '../../lib/token';
 import { User } from '../../models';
 import Sequelize from "sequelize";
 import errors from '../../lib/errors';
-
+import db from '../../models/index';
+import SqlQueries from "../../lib/sqlQueries";
 
 const validateData = (data)  => {
     // TODO: add data validation
@@ -15,19 +16,17 @@ export const signIn = (req, res) => {
         password: req.body.password
     };
 
-    User.findOne({
-        where: {
-            username: data.username
-        }
-    }).then(async result => {
-        if (!result) {
-
+    db.sequelize.query(SqlQueries.findUserByUsername(data.username), {
+        model: User,
+        mapToModel: true
+    })
+        .then(async result => {
+        if (result.length === 0) {
             res.status(401).send({ auth: false, message: 'user not found' });
-        } else if (!await result.validPassword(data.password)) {
-
+        } else if (!await result[0].validPassword(data.password)) {
             res.status(401).send({ auth: false, message: 'wrong password' });
         } else {
-            const token = createToken(result.dataValues.id);
+            const token = createToken(result[0].dataValues.id);
 
             res.status(200).send({ auth: true, token: token });
         }
@@ -92,19 +91,28 @@ export const updateUserData = (req, res) => {
     if(req.body.oldPassword && req.body.newPassword) {
         data.password = req.body.newPassword;
     }
-    User.findByPk(req.user.decoded.id)
+    db.sequelize.query(SqlQueries.findUserById(req.user.decoded.id), {
+        model: User,
+        mapToModel: true
+    })
         .then(async result => {
-            if (!result) {
+            if (result.length === 0) {
                 return res.status(401).send({ success: 0, message: 'user not found' });
             } else  {
                 if(req.body.oldPassword && req.body.newPassword) {
-                    if (!await result.validPassword(req.body.oldPassword)) {
+                    if (!await result[0].validPassword(req.body.oldPassword)) {
                         return res.status(401).send({ success: 0, message: 'wrong password', fields:[{fieldname: 'oldPassword', type: 'wrong password'}] });
                     }
                 }
-                result.update(data)
-                    .then(updated=>{
-                        const upd = updated.toJSON();
+                db.sequelize.query(SqlQueries.updateUser(req.user.decoded.id, data), {
+                    type: Sequelize.QueryTypes.UPDATE
+                })
+                    .then(async updated=>{
+                        const updatedUser = await db.sequelize.query(SqlQueries.findUserById(req.user.decoded.id), {
+                            model: User,
+                            mapToModel: true
+                        })
+                        const upd = updatedUser[0].toJSON();
                         const data = {
                             username: upd.username,
                             email: upd.email,
@@ -132,9 +140,18 @@ export const updateUserData = (req, res) => {
 };
 
 export const getUserData = (req, res) => {
-    User.findByPk(req.params.id, {
-        attributes: ['username', 'firstname', 'lastname', 'email'],
-    }).then(result => {
-        res.send({success: 1, data: result.toJSON()});
-    });
+    db.sequelize.query(SqlQueries.findUserById(req.user.decoded.id), {
+        model: User,
+        mapToModel: true
+    })
+        .then(result => {
+            const user = result[0].toJSON()
+            res.send({success: 1, data: {
+                username: user.username,
+                firstname: user.firstname,
+                lastname: user.lastname,
+                email: user.email
+            }});
+        })
+
 };
