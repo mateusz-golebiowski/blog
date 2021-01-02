@@ -51,4 +51,10 @@ export default class SqlQueries {
     static updatePost (data, id) {
         return `UPDATE Posts SET title='${data.title}',content='${data.content}',img='${data.img}' WHERE id = ${id}`
     }
+
+    static insertPost (data) {
+        const date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+        return `INSERT INTO Posts (title, img, content, UserId, createdAt, updatedAt) 
+        VALUES ('${data.title}','${data.img}','${data.content}','${data.UserId}', '${date}', '${date}');`
+    }
 }

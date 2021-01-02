@@ -28,14 +28,20 @@ export const newPost = (req, res) => {
         title: req.body.title,
         content: req.body.content,
         img: req.file.filename,
+        UserId: req.user.decoded.id
     };
 
     if (validateData(data)){
-        Post.create(data)
+        const opts = {
+            raw: true,
+        }
+        db.sequelize.query(SqlQueries.insertPost(data), opts)
             .then(result=> {
-                result.setUser(req.user.decoded.id);
                 const response = {};
-                response.data = result.toJSON();
+                response.data = {
+                    ...data,
+                    id: result[0]
+                };
                 response.success = true;
                 res.send(response);
             });
