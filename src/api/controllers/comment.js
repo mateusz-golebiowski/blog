@@ -1,4 +1,5 @@
-import {Comment, Post} from '../../models';
+import db, {Comment, Post} from '../../models';
+import SqlQueries from "../../lib/sqlQueries";
 
 const validateData = (data) => {
     let correct = true;
@@ -16,15 +17,22 @@ export const newComment = (req, res) => {
     const data = {
         username: req.body.username,
         email: req.body.email,
-        content: req.body.content
+        content: req.body.content,
+        postId: req.params.postId
     };
 
     if (validateData(data)){
-        Comment.create(data)
+        const opts = {
+            raw: true,
+        }
+        db.sequelize.query(SqlQueries.insertComment(data), opts)
             .then(result=> {
-                result.setPost(req.params.postId);
+
                 const response = {};
-                response.data = result.toJSON();
+                response.data = {
+                    ...data,
+                    id: result[0]
+                };
                 response.success = true;
                 res.send(response);
             });
@@ -35,11 +43,10 @@ export const newComment = (req, res) => {
 };
 
 export const deleteComment = (req, res) => {
-    Comment.destroy({
-        where: {
-            id:  req.params.id
-        }
-    }).then(result => {
+    const opts = {
+        raw: true,
+    }
+    db.sequelize.query(SqlQueries.deleteCommentById(req.params.id), opts) .then(result => {
         if (result){
             res.send({success:1});
         }else {
@@ -52,14 +59,11 @@ export const getComments = (req, res) => {
     const offset = (req.params.page-1) * 10;
     const limit = offset + 10;
     const postId = req.params.postId;
-    Comment.count({
-        include: [{
-            model: Post,
-            attributes: [],
-            where: {
-                id: postId
-            }
-        }]
+    const opts = {
+        raw: true,
+    }
+    db.sequelize.query(SqlQueries.countCommentsForPost(postId), opts).then(count => {
+        return count[0][0].count
     })
         .then(count => {
             Comment.findAll({
@@ -74,6 +78,13 @@ export const getComments = (req, res) => {
                     }
                 }]
             })
+            const opts = {
+                model: Comment,
+                mapToModel: true,
+                nest: true,
+                raw: true,
+            }
+            db.sequelize.query(SqlQueries.getCommentsByPostId(postId, offset, limit), opts)
                 .then(result=>{
                     const response = {};
                     response.count = count;
