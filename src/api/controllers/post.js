@@ -46,46 +46,63 @@ export const newPost = (req, res) => {
 };
 
 export const updatePost = (req, res) => {
+    const opts = {
+        model: User,
+        mapToModel: true,
+        nest: true,
+        raw: true,
+        include: [
+            {
+                model: Post,
+                attributes: ['id', 'img', 'content'],
+            },
+        ]
+    }
     const postId = parseInt(req.params.id);
-    User.findOne({
-        where: {
-            id: req.user.decoded.id
-        },
-        include: [{
-            model: Post,
-            attributes: ['id', 'img', 'content'],
-            where: {
-                id: postId
-            }
-        }]
-    })
+
+    db.sequelize.query(SqlQueries.findPostWithUser(req.user.decoded.id, postId), opts)
         .then(user => {
-            if (user !== null) {
+            if (user.length === 1) {
                 const updateData = {
                     title: req.body.title,
                     content: req.body.content,
                     img: req.file.filename,
                 };
                 if (validateData(updateData)){
-                    const oldContent = JSON.parse(user.Posts[0].toJSON().content);
+                    const oldContent = JSON.parse(user[0].Posts.content);
                     const oldImages = prepareFileList(oldContent);
                     const newContent = JSON.parse(updateData.content);
                     const newImages = prepareFileList(newContent);
                     const imagesToRemove = oldImages.filter( ( el ) => !newImages.includes( el ) );
 
-                    imagesToRemove.push(user.Posts[0].toJSON().img);
+                    imagesToRemove.push(user[0].Posts.img);
                     imagesToRemove.forEach( item=>{
                         removeFile(item);
                     });
 
-                    user.Posts[0].update(updateData)
-                        .then(result =>{
-
+                    const optsUpdate = {
+                        raw: true,
+                    }
+                    db.sequelize.query(SqlQueries.updatePost(updateData, postId), optsUpdate)
+                        .then(result=> {
                             const response = {};
-                            response.data = result.toJSON();
+                            response.data = {
+                                ...updateData,
+                                id: postId
+                            };
                             response.success = true;
                             res.send(response);
-                        });
+                        })
+                    // user.Posts[0].update(updateData)
+                    //     .then(result =>{
+                    //
+                    //         const response = {};
+                    //         response.data = result.toJSON();
+                    //         response.success = true;
+                    //         res.send(response);
+                    //     });
+
+
                 } else {
                     const response = { success: 0, error: 'wrong data'};
                     res.send(response);
@@ -154,22 +171,33 @@ export const getPost = (req, res) => {
 
 export const deletePost = (req, res) => {
 
-    Post.findByPk(req.params.id).then(result => {
-        const content = JSON.parse(result.toJSON().content);
-        const imagesToRemove = prepareFileList(content);
-        imagesToRemove.push(result.img);
-        imagesToRemove.forEach( item=>{
-           removeFile(item);
-        });
+    const opts = {
+        model: Post,
+        mapToModel: true,
+        nest: true,
+        raw: true,
+        include: [
+            {
+                model: User,
+                attributes: ['id','username','firstname','lastname','email']
+            },
+        ]
+    }
+    db.sequelize.query(SqlQueries.findUPostById(req.params.id), opts)
+        .then(result => {
+            const content = JSON.parse(result[0].content);
+            const imagesToRemove = prepareFileList(content);
+            imagesToRemove.push(result[0].img);
+            imagesToRemove.forEach( item=>{
+               removeFile(item);
+            });
 
-    })
+        })
         .then(()=>{
-            Post.destroy({
-                where: {
-                    id: req.params.id
-                }
-            })
-                .then(result => {
+            const opts = {
+                raw: true,
+            }
+            db.sequelize.query(SqlQueries.deletePostById(req.params.id), opts) .then(result => {
                     if (result){
                         res.send({success:1});
                     }else {
