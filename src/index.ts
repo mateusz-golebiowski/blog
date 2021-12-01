@@ -21,13 +21,13 @@ import {RoleRepository} from "./Repositories/role-repository";
     const roleRepository = connection.getCustomRepository(RoleRepository);
 
     // Register a new person in the database by calling the repository.
-    const newPerson = new User();
-    newPerson.firstName = "Jane";
-    newPerson.lastName = "Doe";
-    newPerson.email = "5555555555";
-    newPerson.password = "dsfdf";
-
-   await userRepository.save(newPerson)
+   //  const newPerson = new User();
+   //  newPerson.firstName = "Jane";
+   //  newPerson.lastName = "Doe";
+   //  newPerson.email = "5555555555";
+   //  newPerson.password = "dsfdf";
+   //
+   // await userRepository.save(newPerson)
 
     // Clean up our connection pool so we can exit.
     await connection.close();
