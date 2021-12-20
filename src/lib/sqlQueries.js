@@ -57,12 +57,12 @@ export default class SqlQueries {
         return `INSERT INTO Posts (title, img, content, UserId, createdAt, updatedAt) 
         VALUES ('${data.title}','${data.img}','${data.content}','${data.UserId}', '${date}', '${date}');`
     }
-    static insertComment (data) {
-        const date = new Date().toISOString().slice(0, 19).replace('T', ' ');
-        return `INSERT INTO Comments (content,username,email, postId, createdAt,updatedAt) 
-        VALUES ('${data.content}','${data.username}','${data.email}','${data.postId}','${date}','${date}');
-`
-    }
+//     static insertComment (data) {
+//         const date = new Date().toISOString().slice(0, 19).replace('T', ' ');
+//         return `INSERT INTO Comments (content,username,email, postId, createdAt,updatedAt)
+//         VALUES ('${data.content}','${data.username}','${data.email}','${data.postId}','${date}','${date}');
+// `
+//     }
 
     static deleteCommentById(id) {
         return `DELETE FROM Comments WHERE id = '${id}'`

@@ -24,7 +24,7 @@ export class Article {
     @Column()
     content!: string;
 
-    @Column()
+    @Column({name: 'mainimage'})
     mainImage!: string;
 
     @Column({ name: "created_at" })

@@ -1,5 +1,7 @@
-import db, {Comment, Post} from '../../models';
 import SqlQueries from "../../lib/sqlQueries";
+import {Comment} from "../../Enitites/comments"
+import {Post} from "../../Enitites/post"
+import {getRepository} from "typeorm";
 
 const validateData = (data) => {
     let correct = true;
@@ -12,7 +14,7 @@ const validateData = (data) => {
     return correct;
 };
 
-export const newComment = (req, res) => {
+export const newComment = async (req, res) => {
     console.log(req.body);
     const data = {
         username: req.body.username,
@@ -25,17 +27,21 @@ export const newComment = (req, res) => {
         const opts = {
             raw: true,
         }
-        db.sequelize.query(SqlQueries.insertComment(data), opts)
-            .then(result=> {
+        const commentRepository= getRepository(Comment);
+        const newComment = new Comment();
+        newComment.content = data.content;
+        newComment.username = data.email;
+        newComment.language.id = 1; //todo
+        newComment.article.id=data.postId
+        const result = await commentRepository.save(newComment);
+        const response = {};
+        response.data = {
+            ...data,
+            id: result[0]
+        };
+        response.success = true;
+        res.send(response);
 
-                const response = {};
-                response.data = {
-                    ...data,
-                    id: result[0]
-                };
-                response.success = true;
-                res.send(response);
-            });
     }else {
         const response = { success: 0, error: 'wrong data'};
         res.send(response);

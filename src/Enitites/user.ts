@@ -1,6 +1,7 @@
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, BeforeInsert, BeforeUpdate} from "typeorm";
 import {Role} from "./role";
 import {Article} from "./article";
+import bcrypt from 'bcrypt';
 
 @Entity({ name: "users" })
 export class User {
@@ -19,7 +20,7 @@ export class User {
     @Column({ name: "last_name" })
     lastName!: string;
 
-    @Column()
+    @Column({ unique: true })
     email!: string;
 
     @Column()
@@ -30,4 +31,12 @@ export class User {
 
     @Column({ name: "updated_at" })
     updated?: Date;
+
+    // @BeforeInsert()
+    // updateDates() {
+    //     const salt = bcrypt.genSaltSync(10);
+    //     const hash = bcrypt.hashSync(this.password, salt);
+    //     this.password = hash;
+    //
+    // }
 }

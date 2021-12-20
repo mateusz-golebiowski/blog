@@ -4,19 +4,19 @@ import userRouter from './routes/user';
 import postRouter from './routes/post';
 import commentRouter from './routes/comment';
 import imageRouter from './routes/image';
-import db from '../models/index';
-import { User } from '../models';
+import {getRepository} from "typeorm";
+import {User} from "../Enitites/user";
+import DatabaseManager from "../lib/DatabaseManager";
 
-
-db.sequelize.sync()
-    .then(() =>
-    {
-        User.findAll().then(async result => {
-            if (result.length === 0 ){
-                User.create({username:'admin', password:'admin'});
-            }
-        });
-    });
+// db.sequelize.sync()
+//     .then(() =>
+//     {
+//         User.findAll().then(async result => {
+//             if (result.length === 0 ){
+//                 User.create({username:'admin', password:'admin'});
+//             }
+//         });
+//     });
 
 
 
@@ -33,9 +33,9 @@ api.get('/', (req, res) => {
 });
 
 api.use('/user', userRouter);
-api.use('/post', postRouter);
-api.use('/comment', commentRouter);
-api.use('/image', imageRouter);
+// api.use('/post', postRouter);
+// api.use('/comment', commentRouter);
+// api.use('/image', imageRouter);
 api.all('*', (req, res)=>{
     res.status(404).send('');
 });

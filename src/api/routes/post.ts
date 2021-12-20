@@ -5,9 +5,10 @@ import {auth} from '../controllers/auth';
 import {dataStorageConfig} from '../../config/dataStorageConfig';
 import path from 'path';
 import crypto from 'crypto';
+import {Request, Response} from "express";
 
 const storage = multer.diskStorage({
-    destination: function (req, file, cb) {
+    destination: function (req: Request, file: Object, cb: Function) {
         let storage;
         if (process.env.NODE_ENV === 'production') {
             storage = process.env.IMAGE_STORAGE;
