@@ -17,7 +17,7 @@ const storage = multer.diskStorage({
         }
         cb(null, storage)
     },
-    filename: function (req, file, cb) {
+    filename: function (req: Request, file: any, cb: Function) {
         const md5sum = crypto.createHash('md5');
 
         md5sum.update(file.originalname);
@@ -26,7 +26,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const fileFilter = (req, file, cb) => {
+const fileFilter = (req: Request, file: any, cb: Function) => {
     const type = file.mimetype;
     const typeArray = type.split('/');
     if (typeArray[0] == 'image') {
