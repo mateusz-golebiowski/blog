@@ -23,8 +23,8 @@ export const checkToken = (token, next) => {
         });
     }
 };
-export const createToken = (id) =>{
-    return jsonwebtoken.sign({ id: id }, webtokenConfig.secret, {
+export const createToken = (id, role) =>{
+    return jsonwebtoken.sign({ id: id, role: role }, webtokenConfig.secret, {
         expiresIn: 86400 // expires in 24 hours
     });
 };
