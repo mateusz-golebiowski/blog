@@ -1,10 +1,14 @@
-import db, { Post, User, Comment } from '../../models';
-import Sequelize from 'sequelize';
 import {removeFile} from '../../lib/file';
 import SqlQueries from "../../lib/sqlQueries";
+import {Request, Response} from "express";
+import {Article} from "../../Enitites/article";
+import DatabaseManager from "../../lib/DatabaseManager";
+import {Language} from "../../Enitites/language";
+import {User} from "../../Enitites/user";
+import {Like} from "typeorm";
 
-const prepareFileList = (content) => {
-    return content.blocks.reduce((filtered, item)=>{
+const prepareFileList = (content: any) => {
+    return content.blocks.reduce((filtered: any, item: any)=>{
         if (item.type === 'image') {
             const filename = item.data.file.url.substring(item.data.file.url.lastIndexOf('/')+1);
             filtered.push(filename);
@@ -12,9 +16,9 @@ const prepareFileList = (content) => {
         return filtered;
     }, []);
 };
-const validateData = (data) => {
+const validateData = (data: Article) => {
     let correct = true;
-    if(data.title.length === 0 || data.content.length === 0 || data.img.length === 0)
+    if(data.title.length === 0 || data.content.length === 0 || data.mainImage.length === 0)
         correct = false;
     const content = JSON.parse(data.content);
     console.log(content);
@@ -23,192 +27,143 @@ const validateData = (data) => {
     return correct;
 };
 
-export const newPost = (req, res) => {
-    const data = {
-        title: req.body.title,
-        content: req.body.content,
-        img: req.file.filename,
-        UserId: req.user.decoded.id
-    };
+export const newPost = async (req: Request, res: Response) => {
+    const newPost = new Article();
+    newPost.content = req.body.content;
+    newPost.title = req.body.title;
+    // @ts-ignore
+    newPost.mainImage = req.file.filename;
+    // @ts-ignore
+    newPost.user = req.user.decoded.id
+    const lang = new Language();
+    lang.id =1; // todo: add edit language
+    newPost.language = lang;
 
-    if (validateData(data)){
+    if (validateData(newPost)){
+        const connection = DatabaseManager.getInstance().getConnection();
+        const articleRep = connection.getRepository(Article);
+        const result = await articleRep.save(newPost)
         const opts = {
             raw: true,
         }
-        db.sequelize.query(SqlQueries.insertPost(data), opts)
-            .then(result=> {
-                const response = {};
-                response.data = {
-                    ...data,
-                    id: result[0]
-                };
-                response.success = true;
-                res.send(response);
-            });
+        const response: any = {};
+        response.data = {
+           ...result
+        };
+        response.success = true;
+        res.send(response);
+
     }else {
        const response = { success: 0, error: 'wrong data'};
        res.send(response);
     }
 };
 
-export const updatePost = (req, res) => {
-    const opts = {
-        model: User,
-        mapToModel: true,
-        nest: true,
-        raw: true,
-        include: [
-            {
-                model: Post,
-                attributes: ['id', 'img', 'content'],
-            },
-        ]
-    }
+export const updatePost = async (req: Request, res: Response) => {
+
+    // todo: validate roles
     const postId = parseInt(req.params.id);
-
-    db.sequelize.query(SqlQueries.findPostWithUser(req.user.decoded.id, postId), opts)
-        .then(user => {
-            if (user.length === 1) {
-                const updateData = {
-                    title: req.body.title,
-                    content: req.body.content,
-                    img: req.file.filename,
-                };
-                if (validateData(updateData)){
-                    const oldContent = JSON.parse(user[0].Posts.content);
-                    const oldImages = prepareFileList(oldContent);
-                    const newContent = JSON.parse(updateData.content);
-                    const newImages = prepareFileList(newContent);
-                    const imagesToRemove = oldImages.filter( ( el ) => !newImages.includes( el ) );
-
-                    imagesToRemove.push(user[0].Posts.img);
-                    imagesToRemove.forEach( item=>{
-                        removeFile(item);
-                    });
-
-                    const optsUpdate = {
-                        raw: true,
-                    }
-                    db.sequelize.query(SqlQueries.updatePost(updateData, postId), optsUpdate)
-                        .then(result=> {
-                            const response = {};
-                            response.data = {
-                                ...updateData,
-                                id: postId
-                            };
-                            response.success = true;
-                            res.send(response);
-                        })
-                    // user.Posts[0].update(updateData)
-                    //     .then(result =>{
-                    //
-                    //         const response = {};
-                    //         response.data = result.toJSON();
-                    //         response.success = true;
-                    //         res.send(response);
-                    //     });
-
-
-                } else {
-                    const response = { success: 0, error: 'wrong data'};
-                    res.send(response);
-                }
-
-            }else {
-                res.send('error');
-            }
-        });
-};
-
-export const getPosts = (req, res) => {
-    const offset = (req.params.page-1) * 10;
-    const limit = offset + 10;
-    const Op = Sequelize.Op;
-
-    const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
-    const opts = {
-        raw: true,
-    }
-    db.sequelize.query(SqlQueries.countPosts(titleQuery), opts).then(count => {
-        return count[0][0].count
-    }).then(count=>{
-        const opts = {
-            model: Post,
-            mapToModel: true,
-            nest: true,
-            raw: true,
-        }
-        db.sequelize.query(SqlQueries.getPosts(titleQuery, offset, limit), opts)
-            .then(posts => {
-                const response = {};
-                response.count = count;
-                response.pages = Math.ceil(count/(limit-offset));
-                response.posts = posts;
-                res.send(response);
-            });
-    });
-
-};
-
-export const getPost = (req, res) => {
-    const opts = {
-        model: Post,
-        mapToModel: true,
-        nest: true,
-        raw: true,
-        include: [
-            {
-                model: User,
-                attributes: ['id','username','firstname','lastname','email']
-            },
-        ]
-    }
-    db.sequelize.query(SqlQueries.findUPostById(req.params.id), opts).then(post => {
-        let response;
-        if (post.length === 1) {
-            response = post[0];
-            response.success = 1;
-        } else {
-            response = { success: 0, error: 'there is no post'}
-        }
-        res.send(response);
+    const connection = DatabaseManager.getInstance().getConnection();
+    const articleRep = connection.getRepository(Article);
+    const editor = new User();
+    // @ts-ignore
+    editor.id = req.user.decoded.id;
+    const article = await articleRep.find({
+        where: {id: postId, user: editor}
     })
+
+    if (article.length > 0) {
+        const oldContent = JSON.parse(article[0].content);
+        const oldImg = JSON.parse(article[0].mainImage);
+        article[0].title = req.body.title;
+        article[0].content = req.body.content;
+        // @ts-ignore
+        article[0].mainImage = req.file.filename;
+        if (validateData(article[0])){
+            const oldImages = prepareFileList(oldContent);
+            const newContent = JSON.parse(article[0].content);
+            const newImages = prepareFileList(newContent);
+            const imagesToRemove = oldImages.filter( ( el: string[] ) => !newImages.includes( el ) );
+
+            imagesToRemove.push(oldImg);
+            imagesToRemove.forEach( (item: string) =>{
+                removeFile(item);
+            });
+            const result = await articleRep.save(article);
+            const response: any = {};
+            response.data = {
+                ...article
+            };
+            response.success = true;
+            res.send(response);
+        } else {
+            const response = { success: 0, error: 'wrong data'};
+            res.send(response);
+        }
+    } else {
+        res.send('error');
+    }
 };
 
-export const deletePost = (req, res) => {
+export const getPosts = async (req: Request, res: Response) => {
+    const offset = (Number.parseInt(req.params.page)-1) * 10;
+    const limit = offset + 10;
+    const connection = DatabaseManager.getInstance().getConnection();
+    const articleRep = connection.getRepository(Article);
+    const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
 
-    const opts = {
-        model: Post,
-        mapToModel: true,
-        nest: true,
-        raw: true,
-        include: [
-            {
-                model: User,
-                attributes: ['id','username','firstname','lastname','email']
-            },
-        ]
+    const [result, total] = await articleRep.findAndCount( {
+        where: {
+            title: Like(titleQuery),
+        },
+        order: { createdAt: "DESC" },
+        take: limit,
+        skip: offset
+    })
+
+    const response: any = {};
+    response.count = total;
+    response.pages = Math.ceil(total/(limit-offset));
+    response.posts = result;
+    res.send(response);
+};
+
+export const getPost = async (req: Request, res: Response) => {
+    const connection = DatabaseManager.getInstance().getConnection();
+    const articleRep = connection.getRepository(Article);
+    const articleId = Number.parseInt(req.params.id)
+    const article = await articleRep.find({
+        where: {id: articleId}
+    })
+    let response: any;
+    if (article.length === 1) {
+        response = article[0];
+        response.success = 1;
+    } else {
+        response = { success: 0, error: 'there is no post'}
     }
-    db.sequelize.query(SqlQueries.findUPostById(req.params.id), opts)
-        .then(result => {
-            const content = JSON.parse(result[0].content);
-            const imagesToRemove = prepareFileList(content);
-            imagesToRemove.push(result[0].img);
-            imagesToRemove.forEach( item=>{
-               removeFile(item);
-            });
+    res.send(response);
+};
 
-        })
-        .then(()=>{
-            const opts = {
-                raw: true,
-            }
-            db.sequelize.query(SqlQueries.deletePostById(req.params.id), opts) .then(result => {
-                    if (result){
-                        res.send({success:1});
-                    }else {
-                        res.send({success:0});
-                    }
-                });
+export const deletePost = async (req: Request, res: Response) => {
+    const connection = DatabaseManager.getInstance().getConnection();
+    const articleRep = connection.getRepository(Article);
+    const articleId = Number.parseInt(req.params.id)
+    const removed = await articleRep.find({
+        where: {id: articleId}
+    });
+    const result = await articleRep.delete([articleId]);
+    if (result) {
+        const content = JSON.parse(removed[0].content);
+        const imagesToRemove = prepareFileList(content);
+        imagesToRemove.push(removed[0].mainImage);
+        imagesToRemove.forEach( (item: string)=>{
+            removeFile(item);
         });
+        if (result){
+            res.send({success:1});
+        }else {
+            res.send({success:0});
+        }
+    }
 };

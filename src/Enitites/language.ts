@@ -15,9 +15,6 @@ export class Language {
     @Column({ name: "code" })
     code!: string;
 
-    @Column()
-    email!: string;
-
     @Column({ name: "created_at" })
     createdAt?: Date;
 
