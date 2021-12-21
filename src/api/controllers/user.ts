@@ -6,6 +6,7 @@ import {getConnection, getConnectionManager, getRepository} from "typeorm";
 import {Request, Response} from "express";
 import {User} from "../../Enitites/user";
 import DatabaseManager from "../../lib/DatabaseManager";
+import {Role} from "../../Enitites/role";
 
 const validateData = (data: Object)  => {
     // TODO: add data validation
@@ -30,51 +31,37 @@ export const signIn = async (req: Request, res: Response) => {
     } else if (! await validPassword(user[0].password, data.password)) {
         res.status(401).send({ auth: false, message: 'wrong password' });
     } else {
-        const token = createToken(user[0].id);
+        const token = createToken(user[0].id, user[0].role);
 
         res.status(200).send({ auth: true, token: token });
     }
 };
 
-export const signUp = (req: Request, res: Response) => {
-    /*const data = {
-        username: req.body.username,
-        password: req.body.password,
-        email: req.body.email,
-        firstname: req.body.firstname,
-        lastname: req.body.lastname
-    };
+export const inviteUser = async (req: Request, res: Response) => {
+    const connection = DatabaseManager.getInstance().getConnection();
+    const roleRep = connection.getRepository(Role);
+    const roles = await roleRep.find({
+        where: {id: req.body.roleId}
+    })
+    const userRep = await connection.getRepository(User);
+    const newUser = new User();
+    newUser.firstName = req.body.firstname;
+    newUser.lastName = req.body.lastname;
+    newUser.email = req.body.email;
+    newUser.role = roles[0];
+    const salt = bcrypt.genSaltSync(10);
+    const hash = bcrypt.hashSync(req.body.password, salt);
+    newUser.password = hash;
+    const result = await userRep.save(newUser);
 
-
-    if (validateData(data)) {
-        User.findAll({
-            attributes: ['username', 'email'],
-            where: {
-                [Sequelize.Op.or]: [{username: data.username}, {email: data.email}]
-            }
-        })
-            .then(result => {
-                if (result.length === 0) {
-
-                    return User.create(data);
-                } else {
-                    return null;
-                }
-            })
-            .then(user => {
-                if (user) {
-                    const token = createToken(user.dataValues.id);
-
-                    return res.status(200).send({auth: true, token: token});
-                } else {
-
-                    return res.status(409).send({ message: 'user exists' });
-                }
-            });
+    //todo : email send, validate data
+    if (result) {
+        res.status(200).send({});
     } else {
-        return res.status(409).send({ message: 'incorrect data' });
-    }*/
-    return res.status(409).send({ message: 'incorrect data' });
+        res.status(409).send({ message: 'incorrect data' });
+
+    }
+
 
 };
 
@@ -126,21 +113,15 @@ export const updateUserData = async (req: Request, res: Response) => {
 
 };
 
-export const getUserData = (req: Request, res: Response) => {
-    console.log('test')
-
-    // db.sequelize.query(SqlQueries.findUserById(req.user.decoded.id), {
-    //     model: User,
-    //     mapToModel: true
-    // })
-    //     .then(result => {
-    //         const user = result[0].toJSON()
-    //         res.send({success: 1, data: {
-    //             username: user.username,
-    //             firstname: user.firstname,
-    //             lastname: user.lastname,
-    //             email: user.email
-    //         }});
-    //     })
-
+export const getUserData = async (req: Request, res: Response) => {
+    const connection = DatabaseManager.getInstance().getConnection();
+    const userRep = connection.getRepository(User);
+    const user = await userRep.find({
+        // @ts-ignore
+        where: { id: req.user.decoded.id}
+    })
+    res.send({
+        success: 1,
+        data: user[0]
+    })
 };
