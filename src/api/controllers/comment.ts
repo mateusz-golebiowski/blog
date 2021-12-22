@@ -1,9 +1,11 @@
 import SqlQueries from "../../lib/sqlQueries";
 import {Comment} from "../../Enitites/comments"
-import {Post} from "../../Enitites/post"
-import {getRepository} from "typeorm";
+import {Article} from "../../Enitites/article"
+import {getRepository, Like} from "typeorm";
+import {Request, Response} from "express";
+import DatabaseManager from "../../lib/DatabaseManager";
 
-const validateData = (data) => {
+const validateData = (data: any) => {
     let correct = true;
     try {
         if (data.email.length === 0 || data.content.length === 0 || data.username.length === 0)
@@ -14,90 +16,64 @@ const validateData = (data) => {
     return correct;
 };
 
-export const newComment = async (req, res) => {
+export const newComment = async (req: Request, res: Response) => {
     console.log(req.body);
-    const data = {
-        username: req.body.username,
-        email: req.body.email,
-        content: req.body.content,
-        postId: req.params.postId
-    };
+    const article = new Article();
+    article.id= Number.parseInt(req.params.postId);
+    const newComment = new Comment();
+    newComment.username = req.body.username
+    newComment.email = req.body.email
+    newComment.content = req.body.content
+    newComment.article = article
 
-    if (validateData(data)){
-        const opts = {
-            raw: true,
-        }
-        const commentRepository= getRepository(Comment);
-        const newComment = new Comment();
-        newComment.content = data.content;
-        newComment.username = data.email;
-        newComment.language.id = 1; //todo
-        newComment.article.id=data.postId
-        const result = await commentRepository.save(newComment);
-        const response = {};
+    if (validateData(newComment)) {
+        const connection = DatabaseManager.getInstance().getConnection();
+        const comment = connection.getRepository(Comment);
+        const result = await comment.save(newComment);
+        const response: any = {};
         response.data = {
-            ...data,
-            id: result[0]
+            ...result,
         };
         response.success = true;
         res.send(response);
-
-    }else {
+    } else {
         const response = { success: 0, error: 'wrong data'};
         res.send(response);
     }
 };
 
-export const deleteComment = (req, res) => {
-    const opts = {
-        raw: true,
+export const deleteComment = async (req: Request, res: Response) => {
+    const id = Number.parseInt(req.params.id)
+    const connection = DatabaseManager.getInstance().getConnection();
+    const comment = connection.getRepository(Comment);
+    const result = await comment.delete(id)
+    if (result){
+        res.send({success:1});
+    }else {
+        res.send({success:0});
     }
-    db.sequelize.query(SqlQueries.deleteCommentById(req.params.id), opts) .then(result => {
-        if (result){
-            res.send({success:1});
-        }else {
-            res.send({success:0});
-        }
-    });
+
 };
 
-export const getComments = (req, res) => {
-    const offset = (req.params.page-1) * 10;
+export const getComments = async (req: Request, res: Response) => {
+    const postId = Number.parseInt(req.params.postId)
+    const connection = DatabaseManager.getInstance().getConnection();
+    const comment = connection.getRepository(Comment);
+    const offset = (Number.parseInt(req.params.page)-1) * 10;
     const limit = offset + 10;
-    const postId = req.params.postId;
-    const opts = {
-        raw: true,
-    }
-    db.sequelize.query(SqlQueries.countCommentsForPost(postId), opts).then(count => {
-        return count[0][0].count
+    const art = new Article();
+    art.id = postId
+    const [result, total] = await comment.findAndCount( {
+        where: {
+            article: Article,
+        },
+        order: { createdAt: "DESC" },
+        take: limit,
+        skip: offset
     })
-        .then(count => {
-            Comment.findAll({
-                offset,
-                limit,
-                order: [['updatedAt', 'DESC']],
-                include: [{
-                    model: Post,
-                    attributes: [],
-                    where: {
-                        id: postId
-                    }
-                }]
-            })
-            const opts = {
-                model: Comment,
-                mapToModel: true,
-                nest: true,
-                raw: true,
-            }
-            db.sequelize.query(SqlQueries.getCommentsByPostId(postId, offset, limit), opts)
-                .then(result=>{
-                    const response = {};
-                    response.count = count;
-                    response.pages = Math.ceil(count/(limit-offset));
-                    response.comments = result;
-                    res.send(response);
-                })
-        })
-
+    const response: any = {};
+    response.count = total;
+    response.pages = Math.ceil(total/(limit-offset));
+    response.comments = result;
+    res.send(response);
 };

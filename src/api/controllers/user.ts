@@ -23,9 +23,12 @@ export const signIn = async (req: Request, res: Response) => {
     const connection = DatabaseManager.getInstance().getConnection();
 
     const userRep = await connection.getRepository(User);
+    console.log(data)
     const user: User[] = await userRep.find({
         where: {email: data.email}
     })
+    console.log(user)
+    console.log( await validPassword(user[0].password, data.password))
     if (user.length === 0) {
         res.status(401).send({ auth: false, message: 'user not found' });
     } else if (! await validPassword(user[0].password, data.password)) {

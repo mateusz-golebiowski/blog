@@ -82,7 +82,7 @@ import DatabaseManager from "./lib/DatabaseManager";
     app.use('/api/v1', api);
 
     app.listen(port, () => {
-
+        console.log('listen')
     });
 
 
