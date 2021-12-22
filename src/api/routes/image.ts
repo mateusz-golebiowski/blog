@@ -3,12 +3,13 @@ import {upload, show} from '../controllers/image';
 import {auth} from '../controllers/auth';
 import multer from 'multer';
 import {dataStorageConfig} from '../../config/dataStorageConfig';
+import {Request, Response} from "express";
 
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        let storage;
+        let storage: string;
         if (process.env.NODE_ENV === 'production') {
-            storage = process.env.IMAGE_STORAGE;
+            storage = process.env.IMAGE_STORAGE || ''; // todo: move to config
         } else {
             storage = dataStorageConfig.devUploads;
         }
@@ -19,7 +20,7 @@ const storage = multer.diskStorage({
     }
 });
 
-const fileFilter = (req, file, cb) => {
+const fileFilter = (req: Request, file: any, cb: Function) => {
     const type = file.mimetype;
     const typeArray = type.split('/');
     if (typeArray[0] == 'image') {

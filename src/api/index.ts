@@ -35,7 +35,7 @@ api.get('/', (req, res) => {
 api.use('/user', userRouter);
 api.use('/post', postRouter);
 // api.use('/comment', commentRouter);
-// api.use('/image', imageRouter);
+api.use('/image', imageRouter);
 api.all('*', (req, res)=>{
     res.status(404).send('');
 });
