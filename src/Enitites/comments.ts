@@ -19,6 +19,9 @@ export class Comment {
     username!: string;
 
     @Column()
+    email!: string;
+
+    @Column()
     content!: string;
 
     @Column({ name: "created_at" })

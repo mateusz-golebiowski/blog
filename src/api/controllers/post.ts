@@ -113,6 +113,7 @@ export const getPosts = async (req: Request, res: Response) => {
     const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
 
     const [result, total] = await articleRep.findAndCount( {
+        relations: ['user'],
         where: {
             title: Like(titleQuery),
         },

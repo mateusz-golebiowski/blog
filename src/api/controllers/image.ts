@@ -8,7 +8,7 @@ export const upload = (req: Request, res: Response) => {
         res.send({
             'success' : 1,
             'file': {
-                'url' : `http://192.168.100.7:4000/api/v1/image/${req.file.filename}`, // todo: remove hardocded address
+                'url' : `http://127.0.0.1:4000/api/v1/image/${req.file.filename}`, // todo: remove hardocded address
             }
         });
     }
