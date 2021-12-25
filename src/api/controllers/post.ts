@@ -47,9 +47,7 @@ export const newPost = async (req: Request, res: Response) => {
         const connection = DatabaseManager.getInstance().getConnection();
         const articleRep = connection.getRepository(Article);
         const result = await articleRep.save(newPost)
-        const opts = {
-            raw: true,
-        }
+
         const response: any = {};
         response.data = {
            ...result
