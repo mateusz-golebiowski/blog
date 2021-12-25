@@ -51,7 +51,21 @@ CREATE TABLE comments (
     CONSTRAINT fk_language FOREIGN KEY(language_id) REFERENCES languages(language_id)
 );
 
+CREATE TABLE categories (
+    category_id BIGSERIAL PRIMARY KEY,
+    name TEXT,
+);
+
+CREATE TABLE articles_categories (
+    article_id BIGSERIAL,
+    category_id BIGSERIAL,
+    CONSTRAINT fk_article FOREIGN KEY(article_id) REFERENCES articles(article_id),
+    CONSTRAINT fk_category FOREIGN KEY(category_id) REFERENCES categories(category_id)
+);
+
 INSERT INTO languages (language_id, name, code) VALUES(1, 'English', 'en');
 INSERT INTO roles (role_id, name) VALUES(1, 'Admin');
 INSERT INTO roles (role_id, name) VALUES(2, 'Moderator');
 INSERT INTO roles (role_id, name) VALUES(3, 'Publisher');
+INSERT INTO categories (category_id, name) VALUES(1, 'Software');
+INSERT INTO categories (category_id, name) VALUES(2, 'Hardware');
