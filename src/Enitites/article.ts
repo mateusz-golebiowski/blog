@@ -1,8 +1,9 @@
-import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany} from "typeorm";
+import {Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, OneToMany, ManyToMany, JoinTable} from "typeorm";
 import {Role} from "./role";
 import {User} from "./user";
 import {Language} from "./language";
 import {Comment} from "./comments";
+import {Category} from "./categories";
 
 @Entity({ name: "articles" })
 export class Article {
@@ -32,4 +33,18 @@ export class Article {
 
     @Column({ name: "updated_at" })
     updated?: Date;
+
+    @ManyToMany(() => Category, (category) => category.articles)
+    @JoinTable({
+        name: "articles_categories",
+        joinColumn: {
+            name: "article_id",
+            referencedColumnName: "id"
+        },
+        inverseJoinColumn: {
+            name: "category_id",
+            referencedColumnName: "id"
+        }
+    })
+    categories!: Category[];
 }

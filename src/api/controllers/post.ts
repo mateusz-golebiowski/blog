@@ -6,6 +6,7 @@ import DatabaseManager from "../../lib/DatabaseManager";
 import {Language} from "../../Enitites/language";
 import {User} from "../../Enitites/user";
 import {Like} from "typeorm";
+import {Category} from "../../Enitites/categories";
 
 const prepareFileList = (content: any) => {
     return content.blocks.reduce((filtered: any, item: any)=>{
@@ -37,7 +38,10 @@ export const newPost = async (req: Request, res: Response) => {
     newPost.user = req.user.decoded.id
     const lang = new Language();
     lang.id =1; // todo: add edit language
+    const category = new Category();
+    category.id =1; // todo:  categories
     newPost.language = lang;
+    newPost.categories = [category];
 
     if (validateData(newPost)){
         const connection = DatabaseManager.getInstance().getConnection();

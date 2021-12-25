@@ -4,6 +4,7 @@ import userRouter from './routes/user';
 import postRouter from './routes/post';
 import commentRouter from './routes/comment';
 import imageRouter from './routes/image';
+import categoryRouter from "./routes/category";
 import {getRepository} from "typeorm";
 import {User} from "../Enitites/user";
 import DatabaseManager from "../lib/DatabaseManager";
@@ -36,6 +37,7 @@ api.use('/user', userRouter);
 api.use('/post', postRouter);
 api.use('/comment', commentRouter);
 api.use('/image', imageRouter);
+api.use('/category', categoryRouter);
 api.all('*', (req, res)=>{
     res.status(404).send('');
 });
