@@ -5,6 +5,7 @@ import {Comment} from "../Enitites/comments";
 import {Article} from "../Enitites/article";
 import {Language} from "../Enitites/language";
 import {Category} from "../Enitites/categories";
+import {LanguageToCategories} from "../Enitites/languageToCategories";
 
 class DatabaseManager {
     private static instance: DatabaseManager;
@@ -20,7 +21,7 @@ class DatabaseManager {
             username: "postgres",
             password: "postgres",
             database: "blog",
-            entities: [User, Role, Comment,Article,Language, Category],
+            entities: [User, Role, Comment,Article,Language, Category, LanguageToCategories],
         });
     }
     public static getInstance(): DatabaseManager {

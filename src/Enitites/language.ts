@@ -1,5 +1,6 @@
 import {Entity, PrimaryGeneratedColumn, Column, OneToMany} from "typeorm";
 import {Article} from "./article";
+import {LanguageToCategories} from "./languageToCategories";
 
 @Entity({ name: "languages" })
 export class Language {
@@ -9,15 +10,12 @@ export class Language {
     @OneToMany(type => Article, article => article.language)
     articles!: Article[];
 
+    @OneToMany(() => LanguageToCategories, languageToCategories => languageToCategories.language)
+    categories!: LanguageToCategories[];
+
     @Column({ name: "name" })
     name!: string;
 
     @Column({ name: "code" })
     code!: string;
-
-    @Column({ name: "created_at" })
-    createdAt?: Date;
-
-    @Column({ name: "updated_at" })
-    updated?: Date;
 }

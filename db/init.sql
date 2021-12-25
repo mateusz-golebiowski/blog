@@ -53,7 +53,7 @@ CREATE TABLE comments (
 
 CREATE TABLE categories (
     category_id BIGSERIAL PRIMARY KEY,
-    name TEXT,
+    name TEXT
 );
 
 CREATE TABLE articles_categories (
@@ -63,9 +63,23 @@ CREATE TABLE articles_categories (
     CONSTRAINT fk_category FOREIGN KEY(category_id) REFERENCES categories(category_id)
 );
 
+CREATE TABLE languages_categories (
+    language_category_id BIGSERIAL PRIMARY KEY,
+    language_id BIGSERIAL,
+    category_id BIGSERIAL,
+    value TEXT,
+    CONSTRAINT fk_language FOREIGN KEY(language_id) REFERENCES languages(language_id),
+    CONSTRAINT fk_category FOREIGN KEY(category_id) REFERENCES categories(category_id)
+);
+
 INSERT INTO languages (language_id, name, code) VALUES(1, 'English', 'en');
+INSERT INTO languages (language_id, name, code) VALUES(2, 'Polski', 'pl');
 INSERT INTO roles (role_id, name) VALUES(1, 'Admin');
 INSERT INTO roles (role_id, name) VALUES(2, 'Moderator');
 INSERT INTO roles (role_id, name) VALUES(3, 'Publisher');
 INSERT INTO categories (category_id, name) VALUES(1, 'Software');
 INSERT INTO categories (category_id, name) VALUES(2, 'Hardware');
+INSERT INTO languages_categories (language_id, category_id, value) VALUES(1,1, 'Software');
+INSERT INTO languages_categories (language_id, category_id, value) VALUES(1,2, 'Hardware');
+INSERT INTO languages_categories (language_id, category_id, value) VALUES(2,1, 'Oprogramowanie');
+INSERT INTO languages_categories (language_id, category_id, value) VALUES(2,2, 'Sprzęt');

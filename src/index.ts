@@ -9,6 +9,7 @@ import api from './api';
 import {UserRepository} from "./Repositories/user-repository";
 import {RoleRepository} from "./Repositories/role-repository";
 import DatabaseManager from "./lib/DatabaseManager";
+import {Category} from "./Enitites/categories";
 (async () => {
     // Initialize a connection pool against the database.
     // const connection = await createConnection({
@@ -71,6 +72,20 @@ import DatabaseManager from "./lib/DatabaseManager";
     await DatabaseManager.getInstance().connect();
     const connection = DatabaseManager.getInstance().getConnection();
     const user = connection.getRepository(User);
+    const languages = connection.getRepository(Language);
+    const categories = connection.getRepository(Category);
+
+    const resL = await languages.find({
+        relations: ['categories', 'categories.category'],
+    })
+    const catRest = await categories.find({
+        relations: ['languages', 'languages.language'],
+    })
+    console.log(resL)
+    console.log(catRest)
+    catRest.forEach(it => {
+        console.log(it.languages)
+    })
     user.find()
         .then(async (result) => {
             console.log(result) // todo: user create if there is no user in db
