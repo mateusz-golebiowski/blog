@@ -10,6 +10,7 @@ import {UserRepository} from "./Repositories/user-repository";
 import {RoleRepository} from "./Repositories/role-repository";
 import DatabaseManager from "./lib/DatabaseManager";
 import {Category} from "./Enitites/categories";
+import bcrypt from "bcrypt";
 (async () => {
     // Initialize a connection pool against the database.
     // const connection = await createConnection({
@@ -71,7 +72,7 @@ import {Category} from "./Enitites/categories";
 //     console.log(result2)
     await DatabaseManager.getInstance().connect();
     const connection = DatabaseManager.getInstance().getConnection();
-    const user = connection.getRepository(User);
+    const userRep = connection.getRepository(User);
     const languages = connection.getRepository(Language);
     const categories = connection.getRepository(Category);
 
@@ -86,10 +87,21 @@ import {Category} from "./Enitites/categories";
     catRest.forEach(it => {
         console.log(it.languages)
     })
-    user.find()
-        .then(async (result) => {
-            console.log(result) // todo: user create if there is no user in db
-        })
+    const users = await userRep.find()
+    if (users.length === 0) {
+        const admin = new User();
+        const role = new Role();
+        role.id = 1;
+        admin.role = role;
+        admin.email = 'admin@admin.com'
+        admin.firstName = 'Firstname'
+        admin.lastName = 'lastname'
+        const salt = bcrypt.genSaltSync(10);
+        const hash = bcrypt.hashSync('zaq12wsx', salt);
+        admin.password = hash
+        await userRep.save(admin)
+    }
+
     const app = express();
 
     const port = process.env.PORT || 4000;
