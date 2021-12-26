@@ -25,6 +25,7 @@ export const signIn = async (req: Request, res: Response) => {
     const userRep = await connection.getRepository(User);
     console.log(data)
     const user: User[] = await userRep.find({
+        relations: ['role'],
         where: {email: data.email}
     })
     console.log(user)
