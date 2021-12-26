@@ -48,8 +48,8 @@ export const inviteUser = async (req: Request, res: Response) => {
     })
     const userRep = await connection.getRepository(User);
     const newUser = new User();
-    newUser.firstName = req.body.firstname;
-    newUser.lastName = req.body.lastname;
+    newUser.firstName = req.body.firstName;
+    newUser.lastName = req.body.lastName;
     newUser.email = req.body.email;
     newUser.role = roles[0];
     const salt = bcrypt.genSaltSync(10);
@@ -71,28 +71,29 @@ export const inviteUser = async (req: Request, res: Response) => {
 export const updateUserData = async (req: Request, res: Response) => {
     // @ts-ignore
     console.log(req.user.decoded.id);
-    const data: any = {};
     const connection = DatabaseManager.getInstance().getConnection();
     const userRep = connection.getRepository(User);
     const user: User[] = await userRep.find({
         // @ts-ignore
         where: {id: req.user.decoded.id}
     })
-    if (req.body.email !== undefined)
-        user[0].email = req.body.email;
-    if (req.body.lastname !== undefined)
-        user[0].lastName = req.body.lastname;
-    if (req.body.firstname !== undefined)
-        user[0].firstName = req.body.firstname;
-    if(req.body.oldPassword && req.body.newPassword) {
-        if (!await validPassword(user[0].password, req.body.oldPassword)) {
-            return res.status(401).send({ success: 0, message: 'wrong password', fields:[{fieldname: 'oldPassword', type: 'wrong password'}] });
-        }
-    }
+
+    console.log(user)
     // @ts-ignore
-    if (result.length === 0) {
+    if (user.length === 0) {
         return res.status(401).send({ success: 0, message: 'user not found' });
     } else {
+        if (req.body.email !== undefined)
+            user[0].email = req.body.email;
+        if (req.body.lastName !== undefined)
+            user[0].lastName = req.body.lastName;
+        if (req.body.firstName !== undefined)
+            user[0].firstName = req.body.firstName;
+        if(req.body.oldPassword && req.body.newPassword) {
+            if (!await validPassword(user[0].password, req.body.oldPassword)) {
+                return res.status(401).send({ success: 0, message: 'wrong password', fields:[{fieldname: 'oldPassword', type: 'wrong password'}] });
+            }
+        }
         if (req.body.oldPassword && req.body.newPassword) {
             if (!await validPassword(user[0].password, req.body.oldPassword)) {
                 return res.status(401).send({
