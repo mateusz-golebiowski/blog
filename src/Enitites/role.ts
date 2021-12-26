@@ -7,19 +7,8 @@ export class Role {
     id!: number;
     @OneToMany(type => User, user => user.role)
     users!: User[];
-
-    @Column({ name: "first_name" })
-    firstName!: string;
-
-    @Column({ name: "last_name" })
-    last_name!: string;
-
     @Column()
-    email!: string;
+    name!: string;
 
-    @Column({ name: "created_at" })
-    createdAt?: Date;
 
-    @Column({ name: "updated_at" })
-    updated?: Date;
 }
