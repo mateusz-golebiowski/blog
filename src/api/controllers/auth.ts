@@ -4,7 +4,6 @@ import {Request, Response} from "express";
 export const auth = (req: Request, res: Response, next: Function) => {
     checkToken(req.header('authorization'), (result: any) => {
         if (result.success) {
-            console.log(result);
             //@ts-ignore
             req.user = result;
             next();

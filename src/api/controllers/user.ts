@@ -130,3 +130,18 @@ export const getUserData = async (req: Request, res: Response) => {
         data: user[0]
     })
 };
+export const getAllUserData = async (req: Request, res: Response) => {
+    const connection = DatabaseManager.getInstance().getConnection();
+    const userRep = connection.getRepository(User);
+    const users = await userRep.find({
+        relations: ['role'],
+    })
+    const result = users.map(item => ({
+        ...item,
+        password: undefined
+    }))
+    console.log(result)
+
+    res.status(200)
+    res.send(result)
+};
