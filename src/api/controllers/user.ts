@@ -45,7 +45,7 @@ export const inviteUser = async (req: Request, res: Response) => {
     const connection = DatabaseManager.getInstance().getConnection();
     const roleRep = connection.getRepository(Role);
     const roles = await roleRep.find({
-        where: {id: req.body.roleId}
+        where: {id: req.body.role}
     })
     const userRep = await connection.getRepository(User);
     const newUser = new User();
@@ -54,8 +54,9 @@ export const inviteUser = async (req: Request, res: Response) => {
     newUser.email = req.body.email;
     newUser.role = roles[0];
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync(req.body.password, salt);
+    const hash = bcrypt.hashSync('zaq12wsx', salt); // todo: password
     newUser.password = hash;
+    console.log(newUser)
     const result = await userRep.save(newUser);
 
     //todo : email send, validate data
@@ -144,4 +145,56 @@ export const getAllUserData = async (req: Request, res: Response) => {
 
     res.status(200)
     res.send(result)
+};
+
+export const updateUserDataByAdmin = async (req: Request, res: Response) => {
+    // @ts-ignore
+    console.log(req.user.decoded.id);
+    const id = Number.parseInt(req.params.id);
+    const connection = DatabaseManager.getInstance().getConnection();
+    const userRep = connection.getRepository(User);
+    const user: User[] = await userRep.find({
+        // @ts-ignore
+        where: {id: id}
+    })
+
+    console.log(user)
+    // @ts-ignore
+    if (user.length === 0) {
+        return res.status(401).send({ success: 0, message: 'user not found' });
+    } else {
+        if (req.body.email !== undefined)
+            user[0].email = req.body.email;
+        if (req.body.lastName !== undefined)
+            user[0].lastName = req.body.lastName;
+        if (req.body.firstName !== undefined)
+            user[0].firstName = req.body.firstName;
+        //todo: role
+        
+        // if(req.body.oldPassword && req.body.newPassword) {
+        //     if (!await validPassword(user[0].password, req.body.oldPassword)) {
+        //         return res.status(401).send({ success: 0, message: 'wrong password', fields:[{fieldname: 'oldPassword', type: 'wrong password'}] });
+        //     }
+        // }
+        // if (req.body.oldPassword && req.body.newPassword) {
+        //     if (!await validPassword(user[0].password, req.body.oldPassword)) {
+        //         return res.status(401).send({
+        //             success: 0,
+        //             message: 'wrong password',
+        //             fields: [{fieldname: 'oldPassword', type: 'wrong password'}]
+        //         });
+        //     }
+        //     const password = await bcrypt.hash(req.body.newPassword, 10);
+        //     user[0].password = password;
+        //
+        // }
+        const result = await userRep.save(user[0]);
+        const data = {
+            email: result.email,
+            firstname: result.firstName,
+            lastname: result.lastName,
+        };
+        return res.status(200).send({success: 1, data: data});
+    }
+
 };
