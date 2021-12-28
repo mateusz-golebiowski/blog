@@ -8,6 +8,7 @@ import categoryRouter from "./routes/category";
 import {getRepository} from "typeorm";
 import {User} from "../Enitites/user";
 import DatabaseManager from "../lib/DatabaseManager";
+import languageRouter from "./routes/language";
 
 // db.sequelize.sync()
 //     .then(() =>
@@ -38,6 +39,7 @@ api.use('/post', postRouter);
 api.use('/comment', commentRouter);
 api.use('/image', imageRouter);
 api.use('/category', categoryRouter);
+api.use('/language', languageRouter);
 api.all('*', (req, res)=>{
     res.status(404).send('');
 });
