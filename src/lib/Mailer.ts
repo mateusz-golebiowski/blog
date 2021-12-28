@@ -21,8 +21,8 @@ class Mailer{
         }
         return Mailer.instance
     }
-    public async sendPassword(email: string, password: string) {
-        if (config.smtpUsername.length > 0) {
+    public async sendPassword(email: string | null, password: string) {
+        if (config.smtpUsername.length > 0 && email) {
             await this.transporter.sendMail({
                 from: `"Blog" <${config.smtpUsername}>`, // sender address
                 to: email, // list of receivers

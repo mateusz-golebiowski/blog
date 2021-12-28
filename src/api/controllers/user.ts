@@ -8,6 +8,7 @@ import {User} from "../../Enitites/user";
 import DatabaseManager from "../../lib/DatabaseManager";
 import {Role} from "../../Enitites/role";
 import Mailer from "../../lib/Mailer";
+import {Not, Like, IsNull} from "typeorm";
 
 const validateData = (data: Object)  => {
     // TODO: add data validation
@@ -25,20 +26,22 @@ export const signIn = async (req: Request, res: Response) => {
 
     const userRep = await connection.getRepository(User);
     console.log(data)
-    const user: User[] = await userRep.find({
-        relations: ['role'],
-        where: {email: data.email}
-    })
-    console.log(user)
-    console.log( await validPassword(user[0].password, data.password))
-    if (user.length === 0) {
-        res.status(401).send({ auth: false, message: 'user not found' });
-    } else if (! await validPassword(user[0].password, data.password)) {
-        res.status(401).send({ auth: false, message: 'wrong password' });
-    } else {
-        const token = createToken(user[0].id, user[0].role);
+    if(data.email) {
+        const user: User[] = await userRep.find({
+            relations: ['role'],
+            where: {email: data.email}
+        })
+        console.log(user)
+        console.log( await validPassword(user[0].password, data.password))
+        if (user.length === 0) {
+            res.status(401).send({ auth: false, message: 'user not found' });
+        } else if (! await validPassword(user[0].password, data.password)) {
+            res.status(401).send({ auth: false, message: 'wrong password' });
+        } else {
+            const token = createToken(user[0].id, user[0].role);
 
-        res.status(200).send({ auth: true, token: token });
+            res.status(200).send({ auth: true, token: token });
+        }
     }
 };
 
@@ -140,6 +143,7 @@ export const getAllUserData = async (req: Request, res: Response) => {
     const userRep = connection.getRepository(User);
     const users = await userRep.find({
         relations: ['role'],
+        where: {email:Not(IsNull())}
     })
     const result = users.map(item => ({
         ...item,
@@ -208,4 +212,27 @@ export const getRoles = async (req: Request, res: Response) => {
     const roleRep = connection.getRepository(Role);
     const roles = await roleRep.find();
     res.send(roles)
+}
+export const deleteUser = async (req: Request, res: Response) => {
+    const connection = DatabaseManager.getInstance().getConnection();
+    const userRep = connection.getRepository(User);
+    //@ts-ignore
+    console.log(req.user.decoded.id);
+    const id = Number.parseInt(req.params.id);
+    const user: User[] = await userRep.find({
+        // @ts-ignore
+        where: {id: id}
+    })
+
+    console.log(user)
+    // @ts-ignore
+    if (user.length === 0) {
+        return res.status(401).send({ success: 0, message: 'user not found' });
+    } else {
+        user[0].email = null;
+        user[0].lastName = '';
+        user[0].firstName = '';
+        const result = await userRep.save(user[0]);
+        return res.status(200).send({success: 1});
+    }
 }
