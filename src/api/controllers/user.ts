@@ -57,17 +57,18 @@ export const inviteUser = async (req: Request, res: Response) => {
     const hash = bcrypt.hashSync('zaq12wsx', salt); // todo: password
     newUser.password = hash;
     console.log(newUser)
-    const result = await userRep.save(newUser);
+    try {
+        const result = await userRep.save(newUser);
 
-    //todo : email send, validate data
-    if (result) {
-        res.status(200).send({});
-    } else {
+        //todo : email send, validate data
+        if (result) {
+            res.status(200).send({});
+        } else {
+            res.status(409).send({ message: 'incorrect data' });
+        }
+    } catch (exception) {
         res.status(409).send({ message: 'incorrect data' });
-
     }
-
-
 };
 
 export const updateUserData = async (req: Request, res: Response) => {
@@ -198,3 +199,10 @@ export const updateUserDataByAdmin = async (req: Request, res: Response) => {
     }
 
 };
+
+export const getRoles = async (req: Request, res: Response) => {
+    const connection = DatabaseManager.getInstance().getConnection();
+    const roleRep = connection.getRepository(Role);
+    const roles = await roleRep.find();
+    res.send(roles)
+}
