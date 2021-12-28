@@ -7,6 +7,7 @@ import {Request, Response} from "express";
 import {User} from "../../Enitites/user";
 import DatabaseManager from "../../lib/DatabaseManager";
 import {Role} from "../../Enitites/role";
+import Mailer from "../../lib/Mailer";
 
 const validateData = (data: Object)  => {
     // TODO: add data validation
@@ -62,6 +63,8 @@ export const inviteUser = async (req: Request, res: Response) => {
 
         //todo : email send, validate data
         if (result) {
+            const mailer = Mailer.getInstance();
+            mailer.sendPassword(newUser.email, 'zaq12wsx')
             res.status(200).send({});
         } else {
             res.status(409).send({ message: 'incorrect data' });
