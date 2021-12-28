@@ -22,12 +22,17 @@ class Mailer{
         return Mailer.instance
     }
     public async sendPassword(email: string, password: string) {
-        await this.transporter.sendMail({
-            from: `"Blog" <${config.smtpUsername}>`, // sender address
-            to: email, // list of receivers
-            subject: " Your invitation", // Subject line
-            text: `Here is your password: ${password}`, // plain text body
-        });
+        if (config.smtpUsername.length > 0) {
+            await this.transporter.sendMail({
+                from: `"Blog" <${config.smtpUsername}>`, // sender address
+                to: email, // list of receivers
+                subject: " Your invitation", // Subject line
+                text: `Here is your password: ${password}`, // plain text body
+            });
+        } else {
+            console.log('Email sending error')
+        }
+
     }
 }
 
