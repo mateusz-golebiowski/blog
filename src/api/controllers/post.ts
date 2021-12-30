@@ -108,16 +108,19 @@ export const updatePost = async (req: Request, res: Response) => {
 };
 
 export const getPosts = async (req: Request, res: Response) => {
+    const language = req.params.language;
     const offset = (Number.parseInt(req.params.page)-1) * 10;
     const limit = offset + 10;
     const connection = DatabaseManager.getInstance().getConnection();
     const articleRep = connection.getRepository(Article);
     const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
-
+    const lang = new Language()
+    lang.code = language
     const [result, total] = await articleRep.findAndCount( {
-        relations: ['user'],
+        relations: ['user', 'language'],
         where: {
             title: Like(titleQuery),
+            language: lang
         },
         order: { createdAt: "DESC" },
         take: limit,
@@ -139,6 +142,7 @@ export const getPost = async (req: Request, res: Response) => {
         where: {id: articleId}
     })
     let response: any;
+    console.log(article)
     if (article.length === 1) {
         response = article[0];
         response.success = 1;
