@@ -8,6 +8,6 @@ const languageRouter = Router();
 languageRouter.post('/', auth, addLanguage);
 languageRouter.put('/:id', auth, editLanguage);
 languageRouter.delete('/:id', auth, deleteLanguage);
-languageRouter.get('/:id', auth, getLanguage);
-languageRouter.get('/', auth, getAllLanguages);
+languageRouter.get('/:id', getLanguage);
+languageRouter.get('/', getAllLanguages);
 export default languageRouter;
