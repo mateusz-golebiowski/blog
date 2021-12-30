@@ -9,5 +9,5 @@ languageRouter.post('/', auth, addLanguage);
 languageRouter.put('/:id', auth, editLanguage);
 languageRouter.delete('/:id', auth, deleteLanguage);
 languageRouter.get('/:id', auth, getLanguage);
-languageRouter.get('/updateMyProfile/', auth, getAllLanguages);
+languageRouter.get('/', auth, getAllLanguages);
 export default languageRouter;
