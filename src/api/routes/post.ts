@@ -41,7 +41,7 @@ const up = multer({ storage: storage, fileFilter: fileFilter });
 const postRouter = Router();
 postRouter.post('/',auth, up.single('image'), newPost);
 postRouter.put('/:id', auth, up.single('image'), updatePost);
-postRouter.get('/:page', getPosts);
+postRouter.get('/getAll/:language/:page', getPosts);
 postRouter.get('/show/:id', getPost);
 postRouter.delete('/:id', auth, deletePost);
 
