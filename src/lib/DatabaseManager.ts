@@ -22,6 +22,7 @@ class DatabaseManager {
             password: "postgres",
             database: "blog",
             entities: [User, Role, Comment,Article,Language, Category, LanguageToCategories],
+            logging: true
         });
     }
     public static getInstance(): DatabaseManager {
