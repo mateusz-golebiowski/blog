@@ -65,6 +65,7 @@ export const getAllCategories = async (req: Request, res: Response) => {
     const connection = DatabaseManager.getInstance().getConnection();
     const categoryRep = connection.getRepository(Category);
     const result = await categoryRep.find();
+    console.log(result)
     res.send(result)
 
 };

@@ -5,8 +5,9 @@ import {Article} from "../../Enitites/article";
 import DatabaseManager from "../../lib/DatabaseManager";
 import {Language} from "../../Enitites/language";
 import {User} from "../../Enitites/user";
-import {Like} from "typeorm";
+import {Like, In} from "typeorm";
 import {Category} from "../../Enitites/categories";
+import category from "../routes/category";
 
 const prepareFileList = (content: any) => {
     return content.blocks.reduce((filtered: any, item: any)=>{
@@ -114,18 +115,36 @@ export const getPosts = async (req: Request, res: Response) => {
     const connection = DatabaseManager.getInstance().getConnection();
     const articleRep = connection.getRepository(Article);
     const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
+    const category = req.query.category ? Number.parseInt(req.query.category as string) : 0;
     const lang = new Language()
+    let result, total;
     lang.code = language
-    const [result, total] = await articleRep.findAndCount( {
-        relations: ['user', 'language'],
-        where: {
-            title: Like(titleQuery),
-            language: lang
-        },
-        order: { createdAt: "DESC" },
-        take: limit,
-        skip: offset
-    })
+
+    if (category > 0) {
+        const cat = new Category();
+        cat.id = category;
+        [result, total] = await articleRep.createQueryBuilder('article')
+            .innerJoin('article.categories', 'category')
+            .innerJoin('article.language', 'language')
+            .where('category.category_id = :id', {id: category})
+            .andWhere('language.code = :lang', {lang: lang.code})
+            .andWhere('article.title LIKE :title', {title: titleQuery})
+            .take(limit).skip(offset)
+            .getManyAndCount()
+    } else {
+        [result, total] = await articleRep.createQueryBuilder('article')
+            .innerJoin('article.categories', 'category')
+            .innerJoin('article.language', 'language')
+            .where('language.code = :lang', {lang: lang.code})
+            .andWhere('article.title LIKE :title', {title: titleQuery})
+            .take(limit).skip(offset)
+            .getManyAndCount()
+    }
+
+    console.log(titleQuery)
+    for (let i = 0; i < result.length ; i++) {
+        result[i].user = (await connection.createQueryBuilder().relation(Article, 'user').of(result[i]).loadOne()) as User
+    }
 
     const response: any = {};
     response.count = total;
