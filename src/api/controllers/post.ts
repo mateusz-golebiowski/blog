@@ -38,11 +38,17 @@ export const newPost = async (req: Request, res: Response) => {
     // @ts-ignore
     newPost.user = req.user.decoded.id
     const lang = new Language();
-    lang.id =1; // todo: add edit language
-    const category = new Category();
-    category.id =1; // todo:  categories
+    lang.id = Number(req.body.language);
+    const categories = req.body.category.map((it: string) => {
+        const category = new Category();
+        category.id =Number(it);
+        return category
+    })
+
     newPost.language = lang;
-    newPost.categories = [category];
+    newPost.categories = categories;
+    console.log(req.body)
+    console.log(req.body.category)
 
     if (validateData(newPost)){
         const connection = DatabaseManager.getInstance().getConnection();
@@ -129,6 +135,7 @@ export const getPosts = async (req: Request, res: Response) => {
             .where('category.category_id = :id', {id: category})
             .andWhere('language.code = :lang', {lang: lang.code})
             .andWhere('article.title LIKE :title', {title: titleQuery})
+            .orderBy('article.createdAt', 'DESC')
             .take(limit).skip(offset)
             .getManyAndCount()
     } else {
@@ -137,10 +144,13 @@ export const getPosts = async (req: Request, res: Response) => {
             .innerJoin('article.language', 'language')
             .where('language.code = :lang', {lang: lang.code})
             .andWhere('article.title LIKE :title', {title: titleQuery})
+            .orderBy('article.createdAt', 'DESC')
             .take(limit).skip(offset)
             .getManyAndCount()
     }
 
+    console.log(result)
+    console.log(total)
     console.log(titleQuery)
     for (let i = 0; i < result.length ; i++) {
         result[i].user = (await connection.createQueryBuilder().relation(Article, 'user').of(result[i]).loadOne()) as User
@@ -158,6 +168,7 @@ export const getPost = async (req: Request, res: Response) => {
     const articleRep = connection.getRepository(Article);
     const articleId = Number.parseInt(req.params.id)
     const article = await articleRep.find({
+        relations: ['categories'],
         where: {id: articleId}
     })
     let response: any;
