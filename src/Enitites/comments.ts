@@ -12,9 +12,6 @@ export class Comment {
     @ManyToOne(type => Article, article => article.comments) @JoinColumn({ name: "article_id" })
     article!: Article;
 
-    @ManyToOne(type => Language, language => language.articles) @JoinColumn({ name: "language_id" })
-    language!: Language;
-
     @Column()
     username!: string;
 

@@ -8,7 +8,7 @@ import {User} from "../../Enitites/user";
 import {Like, In} from "typeorm";
 import {Category} from "../../Enitites/categories";
 import category from "../routes/category";
-
+import {Comment} from "../../Enitites/comments";
 const prepareFileList = (content: any) => {
     return content.blocks.reduce((filtered: any, item: any)=>{
         if (item.type === 'image') {
@@ -186,9 +186,19 @@ export const deletePost = async (req: Request, res: Response) => {
     const connection = DatabaseManager.getInstance().getConnection();
     const articleRep = connection.getRepository(Article);
     const articleId = Number.parseInt(req.params.id)
+    const art = new Article();
+    art.id= articleId
+    const comments = new Comment();
+    comments.article = art;
+    const commentRep = connection.getRepository(Comment)
+    await commentRep.delete(comments)
+
     const removed = await articleRep.find({
-        where: {id: articleId}
+        where: {id: articleId},
+        relations: ['categories']
     });
+    removed[0].categories = [];
+    await articleRep.save(removed[0]);
     const result = await articleRep.delete([articleId]);
     if (result) {
         const content = JSON.parse(removed[0].content);
