@@ -41,15 +41,13 @@ CREATE TABLE articles (
 CREATE TABLE comments (
     comment_id BIGSERIAL PRIMARY KEY,
     article_id BIGSERIAL,
-    language_id BIGSERIAL,
     username TEXT,
     email TEXT,
     content TEXT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    CONSTRAINT fk_article FOREIGN KEY(article_id) REFERENCES articles(article_id),
-    CONSTRAINT fk_language FOREIGN KEY(language_id) REFERENCES languages(language_id)
-);
+    CONSTRAINT fk_article FOREIGN KEY(article_id) REFERENCES articles(article_id)
+    );
 
 CREATE TABLE categories (
     category_id BIGSERIAL PRIMARY KEY,
