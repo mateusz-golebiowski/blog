@@ -63,9 +63,10 @@ export const getComments = async (req: Request, res: Response) => {
     const limit = offset + 10;
     const art = new Article();
     art.id = postId
+    console.log(art)
     const [result, total] = await comment.findAndCount( {
         where: {
-            article: Article,
+            article: art,
         },
         order: { createdAt: "DESC" },
         take: limit,
