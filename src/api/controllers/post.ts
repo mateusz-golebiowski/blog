@@ -168,7 +168,7 @@ export const getPost = async (req: Request, res: Response) => {
     const articleRep = connection.getRepository(Article);
     const articleId = Number.parseInt(req.params.id)
     const article = await articleRep.find({
-        relations: ['categories'],
+        relations: ['categories', 'language'],
         where: {id: articleId}
     })
     let response: any;
