@@ -67,10 +67,10 @@ export const inviteUser = async (req: Request, res: Response) => {
            // mailer.sendPassword(newUser.email, 'zaq12wsx')
             res.status(200).send({});
         } else {
-            res.status(409).send({ message: 'incorrect data' });
+            res.status(409).send({ error: 'incorrect data' });
         }
     } catch (exception) {
-        res.status(409).send({ message: 'incorrect data' });
+        res.status(409).send({ error: 'Incorrect data' });
     }
 };
 
@@ -146,7 +146,6 @@ export const getAllUserData = async (req: Request, res: Response) => {
         ...item,
         password: undefined
     }))
-    console.log(result)
 
     res.status(200)
     res.send(result)
