@@ -51,6 +51,7 @@ CREATE TABLE comments (
 
 CREATE TABLE categories (
     category_id BIGSERIAL PRIMARY KEY,
+    deleted BOOLEAN DEFAULT false,
     name TEXT
 );
 

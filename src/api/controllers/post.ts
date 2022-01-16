@@ -82,19 +82,25 @@ export const updatePost = async (req: Request, res: Response) => {
     })
 
     if (article.length > 0) {
+        console.log(article[0])
         const oldContent = JSON.parse(article[0].content);
-        const oldImg = JSON.parse(article[0].mainImage);
+        const oldImg = article[0].mainImage;
         article[0].title = req.body.title;
         article[0].content = req.body.content;
         // @ts-ignore
-        article[0].mainImage = req.file.filename;
+        if (req.file) {
+            article[0].mainImage = req.file.filename;
+        }
         if (validateData(article[0])){
+
             const oldImages = prepareFileList(oldContent);
             const newContent = JSON.parse(article[0].content);
             const newImages = prepareFileList(newContent);
             const imagesToRemove = oldImages.filter( ( el: string[] ) => !newImages.includes( el ) );
 
-            imagesToRemove.push(oldImg);
+            if (req.file) {
+                imagesToRemove.push(oldImg);
+            }
             imagesToRemove.forEach( (item: string) =>{
                 removeFile(item);
             });
