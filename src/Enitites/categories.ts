@@ -18,5 +18,8 @@ export class Category {
     languages!: LanguageToCategories[];
 
     @Column()
+    deleted!: boolean;
+
+    @Column()
     name!: string;
 }

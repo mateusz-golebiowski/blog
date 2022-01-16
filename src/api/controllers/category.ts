@@ -4,7 +4,7 @@ import {getRepository, Like} from "typeorm";
 import {Request, Response} from "express";
 import DatabaseManager from "../../lib/DatabaseManager";
 import {Category} from "../../Enitites/categories";
-
+import {In} from "typeorm";
 
 export const deleteComment = async (req: Request, res: Response) => {
     const id = Number.parseInt(req.params.id)
@@ -64,7 +64,9 @@ export const getAllCategories = async (req: Request, res: Response) => {
 
     const connection = DatabaseManager.getInstance().getConnection();
     const categoryRep = connection.getRepository(Category);
-    const result = await categoryRep.find();
+    const result = await categoryRep.find({
+        where: {deleted: false}
+    });
     console.log(result)
     res.send(result)
 
@@ -86,11 +88,12 @@ export const deleteCategory = async (req: Request, res: Response) => {
     const id = Number.parseInt(req.params.id)
     const connection = DatabaseManager.getInstance().getConnection();
     const categoryRepository = connection.getRepository(Category);
-    const result = await categoryRepository.delete(id)
-    if (result){
-        res.send({success:1});
-    }else {
-        res.send({success:0});
+    const cat = new Category();
+    cat.id = id;
+    const result = await categoryRepository.findOne(cat)
+    if (result) {
+        result.deleted = true;
+        await categoryRepository.save(result)
     }
-
+    res.send({success:1});
 };

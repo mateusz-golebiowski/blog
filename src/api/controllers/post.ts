@@ -116,8 +116,8 @@ export const updatePost = async (req: Request, res: Response) => {
 
 export const getPosts = async (req: Request, res: Response) => {
     const language = req.params.language;
-    const offset = (Number.parseInt(req.params.page)-1) * 10;
-    const limit = offset + 10;
+    const offset = (Number.parseInt(req.params.page)-1) * 5;
+    const limit = offset + 5;
     const connection = DatabaseManager.getInstance().getConnection();
     const articleRep = connection.getRepository(Article);
     const titleQuery = req.query.title ? `%${req.query.title}%` : '%';
