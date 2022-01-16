@@ -56,16 +56,15 @@ export const inviteUser = async (req: Request, res: Response) => {
     newUser.email = req.body.email;
     newUser.role = roles[0];
     const salt = bcrypt.genSaltSync(10);
-    const hash = bcrypt.hashSync('zaq12wsx', salt); // todo: password
+    const hash = bcrypt.hashSync('zaq12wsx', salt);
     newUser.password = hash;
     console.log(newUser)
     try {
         const result = await userRep.save(newUser);
 
-        //todo : email send, validate data
         if (result) {
             const mailer = Mailer.getInstance();
-            mailer.sendPassword(newUser.email, 'zaq12wsx')
+           // mailer.sendPassword(newUser.email, 'zaq12wsx')
             res.status(200).send({});
         } else {
             res.status(409).send({ message: 'incorrect data' });
