@@ -142,7 +142,8 @@ export const getAllUserData = async (req: Request, res: Response) => {
         relations: ['role'],
         where: {email:Not(IsNull())}
     })
-    const result = users.map(item => ({
+    // @ts-ignore
+    const result = users.filter(item => item.id !== req.user.decoded.id).map(item => ({
         ...item,
         password: undefined
     }))
