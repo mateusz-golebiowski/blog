@@ -107,7 +107,7 @@ export const updatePost = async (req: Request, res: Response) => {
             const result = await articleRep.save(article);
             const response: any = {};
             response.data = {
-                ...article
+                ...article[0]
             };
             response.success = true;
             res.send(response);
