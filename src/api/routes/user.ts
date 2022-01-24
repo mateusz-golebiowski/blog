@@ -6,13 +6,14 @@ import {
     updateUserData,
     getAllUserData,
     getRoles,
-    deleteUser
+    deleteUser, updateUserDataByAdmin
 } from '../controllers/user';
 import {auth} from '../controllers/auth';
 
 const userRouter = Router();
 userRouter.post('/signIn', signIn);
 userRouter.post('/invite', auth, inviteUser);
+userRouter.put('/:id', auth, updateUserDataByAdmin);
 userRouter.get('/getData/:id', auth, getUserData);
 userRouter.delete('/:id', auth, deleteUser);
 userRouter.put('/updateMyProfile/', auth, updateUserData);
