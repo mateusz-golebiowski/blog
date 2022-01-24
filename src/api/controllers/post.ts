@@ -155,9 +155,6 @@ export const getPosts = async (req: Request, res: Response) => {
             .getManyAndCount()
     }
 
-    console.log(result)
-    console.log(total)
-    console.log(titleQuery)
     for (let i = 0; i < result.length ; i++) {
         result[i].user = (await connection.createQueryBuilder().relation(Article, 'user').of(result[i]).loadOne()) as User
     }
@@ -178,7 +175,6 @@ export const getPost = async (req: Request, res: Response) => {
         where: {id: articleId}
     })
     let response: any;
-    console.log(article)
     if (article.length === 1) {
         response = article[0];
         response.success = 1;
