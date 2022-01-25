@@ -6,42 +6,6 @@ import DatabaseManager from "../../lib/DatabaseManager";
 import {Category} from "../../Enitites/categories";
 import {In} from "typeorm";
 
-export const deleteComment = async (req: Request, res: Response) => {
-    const id = Number.parseInt(req.params.id)
-    const connection = DatabaseManager.getInstance().getConnection();
-    const comment = connection.getRepository(Comment);
-    const result = await comment.delete(id)
-    if (result){
-        res.send({success:1});
-    }else {
-        res.send({success:0});
-    }
-
-};
-
-export const getComments = async (req: Request, res: Response) => {
-    const postId = Number.parseInt(req.params.postId)
-    const connection = DatabaseManager.getInstance().getConnection();
-    const comment = connection.getRepository(Comment);
-    const offset = (Number.parseInt(req.params.page)-1) * 10;
-    const limit = offset + 10;
-    const art = new Article();
-    art.id = postId
-    const [result, total] = await comment.findAndCount( {
-        where: {
-            article: Article,
-        },
-        order: { createdAt: "DESC" },
-        take: limit,
-        skip: offset
-    })
-    const response: any = {};
-    response.count = total;
-    response.pages = Math.ceil(total/(limit-offset));
-    response.comments = result;
-    res.send(response);
-};
-
 
 export const newCategory = async (req: Request, res: Response) => {
     console.log(req.body);
@@ -50,6 +14,33 @@ export const newCategory = async (req: Request, res: Response) => {
     const connection = DatabaseManager.getInstance().getConnection();
     const categoryRep = connection.getRepository(Category);
     const result = await categoryRep.save(category);
+    const response: any = {};
+    response.data = {
+        ...result,
+    };
+    response.success = true;
+    res.send(response);
+
+};
+
+export const updateCategory = async (req: Request, res: Response) => {
+    console.log(req.body);
+    const id= Number.parseInt(req.params.id);
+    console.log(id);
+
+    const category = new Category();
+    category.id = id
+    category.name = req.body.name;
+    const connection = DatabaseManager.getInstance().getConnection();
+    const categoryRep = connection.getRepository(Category);
+    const result = await categoryRep.findOne({
+        where:{id: id}
+    });
+    if (result) {
+        result.name = req.body.name;
+        await categoryRep.save(result)
+    }
+
     const response: any = {};
     response.data = {
         ...result,
