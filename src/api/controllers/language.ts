@@ -12,6 +12,7 @@ import {Not, Like, IsNull} from "typeorm";
 import {Comment} from "../../Enitites/comments";
 import {Language} from "../../Enitites/language";
 import {Article} from "../../Enitites/article";
+import {Category} from "../../Enitites/categories";
 
 
 export const getLanguage = async (req: Request, res: Response) => {
@@ -76,7 +77,24 @@ export const deleteLanguage = async (req: Request, res: Response) => {
 };
 
 export const editLanguage = async (req: Request, res: Response) => {
-    // todo:
+    const id= Number.parseInt(req.params.id);
 
+    const connection = DatabaseManager.getInstance().getConnection();
+    const langRep = connection.getRepository(Language);
+    const result = await langRep.findOne({
+        where:{id: id}
+    });
+    if (result) {
+        result.name = req.body.name;
+        result.code = req.body.code;
+        await langRep.save(result)
+    }
+
+    const response: any = {};
+    response.data = {
+        ...result,
+    };
+    response.success = true;
+    res.send(response);
 };
 
