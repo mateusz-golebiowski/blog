@@ -30,94 +30,102 @@ const validateData = (data: Article) => {
 };
 
 export const newPost = async (req: Request, res: Response) => {
-    const newPost = new Article();
-    newPost.content = req.body.content;
-    newPost.title = req.body.title;
-    // @ts-ignore
-    newPost.mainImage = req.file.filename;
-    // @ts-ignore
-    newPost.user = req.user.decoded.id
-    const lang = new Language();
-    lang.id = Number(req.body.language);
-    const categories = req.body.category.map((it: string) => {
-        const category = new Category();
-        category.id =Number(it);
-        return category
-    })
-
-    newPost.language = lang;
-    newPost.categories = categories;
-    console.log(req.body)
-    console.log(req.body.category)
-
-    if (validateData(newPost)){
-        const connection = DatabaseManager.getInstance().getConnection();
-        const articleRep = connection.getRepository(Article);
-        const result = await articleRep.save(newPost)
-
-        const response: any = {};
-        response.data = {
-           ...result
-        };
-        response.success = true;
-        res.send(response);
-
-    }else {
-       const response = { success: 0, error: 'wrong data'};
-       res.send(response);
-    }
-};
-
-export const updatePost = async (req: Request, res: Response) => {
-
-    // todo: validate roles
-    const postId = parseInt(req.params.id);
-    const connection = DatabaseManager.getInstance().getConnection();
-    const articleRep = connection.getRepository(Article);
-    const editor = new User();
-    // @ts-ignore
-    editor.id = req.user.decoded.id;
-    const article = await articleRep.find({
-        where: {id: postId, user: editor}
-    })
-
-    if (article.length > 0) {
-        console.log(article[0])
-        const oldContent = JSON.parse(article[0].content);
-        const oldImg = article[0].mainImage;
-        article[0].title = req.body.title;
-        article[0].content = req.body.content;
+    //@ts-ignore
+    const role = Number.parseInt(req.user.decoded.role.id)
+    if (role === 3) {
+        const newPost = new Article();
+        newPost.content = req.body.content;
+        newPost.title = req.body.title;
         // @ts-ignore
-        if (req.file) {
-            article[0].mainImage = req.file.filename;
-        }
-        if (validateData(article[0])){
+        newPost.mainImage = req.file.filename;
+        // @ts-ignore
+        newPost.user = req.user.decoded.id
+        const lang = new Language();
+        lang.id = Number(req.body.language);
+        const categories = req.body.category.map((it: string) => {
+            const category = new Category();
+            category.id =Number(it);
+            return category
+        })
 
-            const oldImages = prepareFileList(oldContent);
-            const newContent = JSON.parse(article[0].content);
-            const newImages = prepareFileList(newContent);
-            const imagesToRemove = oldImages.filter( ( el: string[] ) => !newImages.includes( el ) );
+        newPost.language = lang;
+        newPost.categories = categories;
+        console.log(req.body)
+        console.log(req.body.category)
 
-            if (req.file) {
-                imagesToRemove.push(oldImg);
-            }
-            imagesToRemove.forEach( (item: string) =>{
-                removeFile(item);
-            });
-            const result = await articleRep.save(article);
+        if (validateData(newPost)){
+            const connection = DatabaseManager.getInstance().getConnection();
+            const articleRep = connection.getRepository(Article);
+            const result = await articleRep.save(newPost)
+
             const response: any = {};
             response.data = {
-                ...article[0]
+                ...result
             };
             response.success = true;
             res.send(response);
-        } else {
+
+        }else {
             const response = { success: 0, error: 'wrong data'};
             res.send(response);
         }
-    } else {
-        res.send('error');
     }
+
+};
+
+export const updatePost = async (req: Request, res: Response) => {
+//@ts-ignore
+    const role = Number.parseInt(req.user.decoded.role.id)
+    if (role === 3) {
+        const postId = parseInt(req.params.id);
+        const connection = DatabaseManager.getInstance().getConnection();
+        const articleRep = connection.getRepository(Article);
+        const editor = new User();
+        // @ts-ignore
+        editor.id = req.user.decoded.id;
+        const article = await articleRep.find({
+            where: {id: postId, user: editor}
+        })
+
+        if (article.length > 0) {
+            console.log(article[0])
+            const oldContent = JSON.parse(article[0].content);
+            const oldImg = article[0].mainImage;
+            article[0].title = req.body.title;
+            article[0].content = req.body.content;
+            // @ts-ignore
+            if (req.file) {
+                article[0].mainImage = req.file.filename;
+            }
+            if (validateData(article[0])){
+
+                const oldImages = prepareFileList(oldContent);
+                const newContent = JSON.parse(article[0].content);
+                const newImages = prepareFileList(newContent);
+                const imagesToRemove = oldImages.filter( ( el: string[] ) => !newImages.includes( el ) );
+
+                if (req.file) {
+                    imagesToRemove.push(oldImg);
+                }
+                imagesToRemove.forEach( (item: string) =>{
+                    removeFile(item);
+                });
+                const result = await articleRep.save(article);
+                const response: any = {};
+                response.data = {
+                    ...article[0]
+                };
+                response.success = true;
+                res.send(response);
+            } else {
+                const response = { success: 0, error: 'wrong data'};
+                res.send(response);
+            }
+        } else {
+            res.send('error');
+        }
+    }
+
 };
 
 export const getPosts = async (req: Request, res: Response) => {
@@ -185,34 +193,39 @@ export const getPost = async (req: Request, res: Response) => {
 };
 
 export const deletePost = async (req: Request, res: Response) => {
-    const connection = DatabaseManager.getInstance().getConnection();
-    const articleRep = connection.getRepository(Article);
-    const articleId = Number.parseInt(req.params.id)
-    const art = new Article();
-    art.id= articleId
-    const comments = new Comment();
-    comments.article = art;
-    const commentRep = connection.getRepository(Comment)
-    await commentRep.delete(comments)
+    //@ts-ignore
+    const role = Number.parseInt(req.user.decoded.role.id)
+    if (role === 3 || role === 1) {
+        const connection = DatabaseManager.getInstance().getConnection();
+        const articleRep = connection.getRepository(Article);
+        const articleId = Number.parseInt(req.params.id)
+        const art = new Article();
+        art.id= articleId
+        const comments = new Comment();
+        comments.article = art;
+        const commentRep = connection.getRepository(Comment)
+        await commentRep.delete(comments)
 
-    const removed = await articleRep.find({
-        where: {id: articleId},
-        relations: ['categories']
-    });
-    removed[0].categories = [];
-    await articleRep.save(removed[0]);
-    const result = await articleRep.delete([articleId]);
-    if (result) {
-        const content = JSON.parse(removed[0].content);
-        const imagesToRemove = prepareFileList(content);
-        imagesToRemove.push(removed[0].mainImage);
-        imagesToRemove.forEach( (item: string)=>{
-            removeFile(item);
+        const removed = await articleRep.find({
+            where: {id: articleId},
+            relations: ['categories']
         });
-        if (result){
-            res.send({success:1});
-        }else {
-            res.send({success:0});
+        removed[0].categories = [];
+        await articleRep.save(removed[0]);
+        const result = await articleRep.delete([articleId]);
+        if (result) {
+            const content = JSON.parse(removed[0].content);
+            const imagesToRemove = prepareFileList(content);
+            imagesToRemove.push(removed[0].mainImage);
+            imagesToRemove.forEach( (item: string)=>{
+                removeFile(item);
+            });
+            if (result){
+                res.send({success:1});
+            }else {
+                res.send({success:0});
+            }
         }
     }
+
 };
