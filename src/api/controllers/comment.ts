@@ -43,16 +43,19 @@ export const newComment = async (req: Request, res: Response) => {
 };
 
 export const deleteComment = async (req: Request, res: Response) => {
-    const id = Number.parseInt(req.params.id)
-    const connection = DatabaseManager.getInstance().getConnection();
-    const comment = connection.getRepository(Comment);
-    const result = await comment.delete(id)
-    if (result){
-        res.send({success:1});
-    }else {
-        res.send({success:0});
+    //@ts-ignore
+    const role = Number.parseInt(req.user.decoded.role.id)
+    if (role === 2 || role === 1) {
+        const id = Number.parseInt(req.params.id)
+        const connection = DatabaseManager.getInstance().getConnection();
+        const comment = connection.getRepository(Comment);
+        const result = await comment.delete(id)
+        if (result){
+            res.send({success:1});
+        }else {
+            res.send({success:0});
+        }
     }
-
 };
 
 export const getComments = async (req: Request, res: Response) => {
