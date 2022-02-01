@@ -26,7 +26,7 @@ class Mailer{
             await this.transporter.sendMail({
                 from: `"Blog" <${config.smtpUsername}>`, // sender address
                 to: email, // list of receivers
-                subject: " Your invitation", // Subject line
+                subject: "Your invitation", // Subject line
                 text: `Here is your password: ${password}`, // plain text body
             });
         } else {
