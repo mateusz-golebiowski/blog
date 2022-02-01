@@ -67,7 +67,7 @@ export const inviteUser = async (req: Request, res: Response) => {
 
             if (result) {
                 const mailer = Mailer.getInstance();
-                // mailer.sendPassword(newUser.email, 'zaq12wsx')
+                mailer.sendPassword(newUser.email, 'zaq12wsx')
                 res.status(200).send({});
             } else {
                 res.status(409).send({ error: 'incorrect data' });
