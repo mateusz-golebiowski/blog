@@ -54,9 +54,38 @@ export const updateCategory = async (req: Request, res: Response) => {
         category.name = req.body.name;
         const connection = DatabaseManager.getInstance().getConnection();
         const categoryRep = connection.getRepository(Category);
+        const languageCatRep = connection.getRepository(LanguageToCategories);
+        let langs =  (await languageCatRep.find({
+            relations: ['language', 'category']
+        })).filter(it => it.category.deleted === false && Number(it.category.id) === id);
+        console.log('langs')
+        console.log(langs)
+        console.log(req.body)
+        const languagesRep = connection.getRepository(Language);
+        const allLanguages = await languagesRep.find();
         const result = await categoryRep.findOne({
             where:{id: id}
         });
+        for (const l of req.body.languageData) {
+            const f = langs.findIndex(it => it.language.code === l.code)
+            if (f !== -1) {
+                langs[f].value =  l.value
+            } else {
+                const newL = new LanguageToCategories();
+                if (result) {
+                    newL.category = result;
+                }
+                const fl = allLanguages.find(it => it.code === l.code)
+                if (fl) {
+                    newL.language = fl
+                }
+                newL.value = l.value;
+                langs.push(newL)
+
+            }
+        }
+        await languageCatRep.save(langs)
+
         if (result) {
             result.name = req.body.name;
             await categoryRep.save(result)
@@ -72,31 +101,46 @@ export const updateCategory = async (req: Request, res: Response) => {
 };
 
 export const getAllCategories = async (req: Request, res: Response) => {
-    console.log(req.body);
     const lang = req.query.lang || 'en'
-    console.log(req.query)
-    console.log(lang)
+    const all = req.query.all==='true'
+
     const connection = DatabaseManager.getInstance().getConnection();
     const categoryRep = connection.getRepository(Category);
     const languageCatRep = connection.getRepository(LanguageToCategories);
 
-    const langs = (await languageCatRep.find({
-        relations: ['language', 'category']
-    })).filter(it => it.category.deleted === false && it.language.code === lang);
-    console.log(langs)
+    let langs: LanguageToCategories[];
+    if (all) {
+        langs =  (await languageCatRep.find({
+            relations: ['language', 'category']
+        })).filter(it => it.category.deleted === false);
+        const result = await categoryRep.find({
+            where: {deleted: false}
+        });
+        const response = result.map( it => {
+            return {
+                id: it.id,
+                name: it.name,
+                languageData: langs.filter(el => el.category.id === it.id).map(el=> ({code: el.language.code,value: el.value}))
+            }
+        })
+        res.send(response)
+    } else {
+        langs = (await languageCatRep.find({
+            relations: ['language', 'category']
+        })).filter(it => it.category.deleted === false && it.language.code === lang);
+        const result = await categoryRep.find({
+            where: {deleted: false}
+        });
+        const response = result.map( it => {
+            const found = langs.find((el) => el.category.id === it.id)
+            return {
+                id: it.id,
+                name: found ? found.value : it.name,
+            }
+        })
+        res.send(response)
+    }
 
-    const result = await categoryRep.find({
-        where: {deleted: false}
-    });
-    const response = result.map( it => {
-        const found = langs.find((el) => el.category.id === it.id)
-        return {
-            id: it.id,
-            name: found ? found.value : it.name,
-        }
-    })
-    console.log(response)
-    res.send(response)
 
 };
 
