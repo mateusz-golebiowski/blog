@@ -1,9 +1,20 @@
-FROM node:lts-slim as build
+FROM node:14-stretch
+
+# create root application folder
 WORKDIR /app
-ENV PATH /app/node_modules/.bin:$PATH
-COPY package.json /app/package.json
-COPY yarn.lock /app/yarn.lock
-RUN yarn
-COPY . /app
+
+# copy configs to /app folder
+COPY package*.json ./
+COPY tsconfig.json ./
+# copy source code to /app/src folder
+COPY src /app/src
+
+# check files list
+RUN ls -a
+
+RUN npm install
+RUN npm run build
+
 EXPOSE 4000
-CMD [ "yarn", "prod" ]
+
+CMD [ "node", "./dist/index.js" ]

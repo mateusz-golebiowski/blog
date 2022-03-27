@@ -6,6 +6,7 @@ import {Article} from "../Enitites/article";
 import {Language} from "../Enitites/language";
 import {Category} from "../Enitites/categories";
 import {LanguageToCategories} from "../Enitites/languageToCategories";
+import config from "../config/config";
 
 class DatabaseManager {
     private static instance: DatabaseManager;
@@ -16,7 +17,7 @@ class DatabaseManager {
         this.connection = await createConnection({
             name: 'postgres',
             type: "postgres",
-            host: "localhost",
+            host: config.dbHost,
             port: 5432,
             username: "postgres",
             password: "postgres",

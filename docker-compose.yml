@@ -31,6 +31,21 @@ services:
     networks:
       - postgres
     restart: unless-stopped
+  blog-backend:
+    container_name: blog-backend
+    image: blog-backend
+    environment:
+      HOST: 127.0.0.1,
+      PORT: 4000,
+      DB_HOST: db
+
+    volumes:
+      - ./uploads:/app/uploads
+    ports:
+      - "4000:4000"
+    networks:
+      - postgres
+    restart: always
 
 networks:
   postgres:
